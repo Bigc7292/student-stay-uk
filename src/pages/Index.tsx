@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Home, MessageSquare, Users, FileText, PoundSterling, HelpCircle, Star } from 'lucide-react';
+import { Search, Home, MessageSquare, Users, FileText, PoundSterling, HelpCircle, Star, MapPin, Bot } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import BillSplitter from '@/components/BillSplitter';
 import LegalGuidance from '@/components/LegalGuidance';
 import CommunityForum from '@/components/CommunityForum';
 import DepositProtection from '@/components/DepositProtection';
+import InteractiveMaps from '@/components/InteractiveMaps';
+import AIChatbot from '@/components/AIChatbot';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -59,19 +61,23 @@ const Index = () => {
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'search', label: 'Search', icon: Search },
+    { id: 'maps', label: 'Maps', icon: MapPin },
     { id: 'reviews', label: 'Reviews', icon: Star },
     { id: 'application', label: 'Apply', icon: FileText },
     { id: 'maintenance', label: 'Maintenance', icon: Home },
     { id: 'bills', label: 'Bills', icon: PoundSterling },
     { id: 'legal', label: 'Legal Help', icon: HelpCircle },
     { id: 'forum', label: 'Community', icon: Users },
-    { id: 'deposit', label: 'Deposit', icon: FileText }
+    { id: 'deposit', label: 'Deposit', icon: FileText },
+    { id: 'ai-chat', label: 'AI Assistant', icon: Bot }
   ];
 
   const renderContent = () => {
     switch (activeTab) {
       case 'search':
         return <SearchForm searchResults={searchResults} />;
+      case 'maps':
+        return <InteractiveMaps />;
       case 'reviews':
         return <ReviewAnalysis />;
       case 'application':
@@ -86,6 +92,8 @@ const Index = () => {
         return <CommunityForum />;
       case 'deposit':
         return <DepositProtection />;
+      case 'ai-chat':
+        return <AIChatbot />;
       default:
         return (
           <div className="space-y-8">
@@ -93,12 +101,26 @@ const Index = () => {
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 text-center">
               <h1 className="text-4xl font-bold mb-4">Find Your Perfect Student Home</h1>
               <p className="text-xl mb-6">AI-powered accommodation search for UK university students</p>
-              <Button 
-                onClick={() => setActiveTab('search')} 
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg"
-              >
-                Start Searching
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button 
+                  onClick={() => setActiveTab('search')} 
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-lg"
+                >
+                  Start Searching
+                </Button>
+                <Button 
+                  onClick={() => setActiveTab('maps')} 
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-lg"
+                >
+                  Explore Maps
+                </Button>
+                <Button 
+                  onClick={() => setActiveTab('ai-chat')} 
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-lg"
+                >
+                  Ask AI Assistant
+                </Button>
+              </div>
             </div>
 
             {/* Key Features */}
@@ -115,6 +137,16 @@ const Index = () => {
 
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
+                  <MapPin className="w-8 h-8 mx-auto text-green-600 mb-2" />
+                  <CardTitle className="text-lg">Interactive Maps</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">Explore universities and accommodations with Street View and amenity mapping</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="text-center">
                   <Star className="w-8 h-8 mx-auto text-yellow-600 mb-2" />
                   <CardTitle className="text-lg">Review Analysis</CardTitle>
                 </CardHeader>
@@ -125,21 +157,11 @@ const Index = () => {
 
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
-                  <FileText className="w-8 h-8 mx-auto text-green-600 mb-2" />
-                  <CardTitle className="text-lg">Easy Applications</CardTitle>
+                  <Bot className="w-8 h-8 mx-auto text-purple-600 mb-2" />
+                  <CardTitle className="text-lg">AI Assistant</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600">Streamlined application process with document assistance</p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <PoundSterling className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-                  <CardTitle className="text-lg">Bill Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">Smart bill splitting and payment tracking for shared homes</p>
+                  <p className="text-sm text-gray-600">24/7 support for all your student housing questions and guidance</p>
                 </CardContent>
               </Card>
             </div>
