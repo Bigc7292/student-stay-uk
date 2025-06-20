@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PoundSterling, Users, Calculator, CreditCard, Receipt, Plus, Minus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,17 +57,23 @@ const BillSplitter = () => {
   const [showNewBill, setShowNewBill] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
 
-  const calculateSplit = (bill: any) => {
+  const calculateSplit = (bill: any): number => {
     const amount = bill.amount;
     const numHousemates = housemates.length;
     
     if (bill.splitType === 'equal') {
       return amount / numHousemates;
     } else if (bill.splitType === 'usage') {
-      // Simulate usage-based calculation
-      return housemates.map(h => (amount * h.share) / 100);
+      // For usage-based, return the average for simplicity in totals
+      // Individual shares can be calculated separately when needed
+      return amount / numHousemates;
     }
     return amount / numHousemates;
+  };
+
+  const calculateUsageSplits = (bill: any): number[] => {
+    const amount = bill.amount;
+    return housemates.map(h => (amount * h.share) / 100);
   };
 
   const addNewBill = () => {
@@ -284,7 +289,7 @@ const BillSplitter = () => {
                   <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
                     <span>Total: £{bill.amount}</span>
                     <span>•</span>
-                    <span>Per person: £{calculateSplit(bill).toFixed ? calculateSplit(bill).toFixed(2) : (calculateSplit(bill) as number[])[0]?.toFixed(2)}</span>
+                    <span>Per person: £{calculateSplit(bill).toFixed(2)}</span>
                     <span>•</span>
                     <span>Due: {bill.dueDate}</span>
                   </div>
@@ -297,19 +302,28 @@ const BillSplitter = () => {
 
               {/* Payment Status by Housemate */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {housemates.map((housemate) => (
-                  <div key={housemate.name} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm font-medium">{housemate.name}</span>
-                    <Button
-                      size="sm"
-                      variant={bill.paidBy.includes(housemate.name) ? "default" : "outline"}
-                      onClick={() => markAsPaid(bill.id, housemate.name)}
-                      className="h-6"
-                    >
-                      {bill.paidBy.includes(housemate.name) ? '✓' : '○'}
-                    </Button>
-                  </div>
-                ))}
+                {housemates.map((housemate, index) => {
+                  const individualAmount = bill.splitType === 'usage' 
+                    ? calculateUsageSplits(bill)[index] 
+                    : calculateSplit(bill);
+                  
+                  return (
+                    <div key={housemate.name} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{housemate.name}</span>
+                        <span className="text-xs text-gray-500">£{individualAmount.toFixed(2)}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={bill.paidBy.includes(housemate.name) ? "default" : "outline"}
+                        onClick={() => markAsPaid(bill.id, housemate.name)}
+                        className="h-6"
+                      >
+                        {bill.paidBy.includes(housemate.name) ? '✓' : '○'}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="mt-3 text-sm text-gray-600">
