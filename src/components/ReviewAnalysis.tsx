@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Star, TrendingUp, TrendingDown, MessageSquare, Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +12,7 @@ const ReviewAnalysis = () => {
   const reviewData = {
     '1': {
       name: "Modern Student Studio - City Centre",
-      over allRating: 4.5,
+      overallRating: 4.5,
       totalReviews: 127,
       sentiment: {
         positive: 78,
