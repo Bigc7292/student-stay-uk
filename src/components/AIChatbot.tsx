@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Bot, User, Loader2, BookOpen, Home, PoundSterling, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -162,7 +161,7 @@ const AIChatbot = () => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      set
+      setIsTyping(false);
     }, 1000 + Math.random() * 2000);
   };
 
