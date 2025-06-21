@@ -8,8 +8,26 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { mapsService } from '@/services/mapsService';
-import { locationService } from '@/services/locationService';
+
+// Lazy import services to prevent server errors
+let mapsService: any = null;
+let locationService: any = null;
+
+// Initialize services asynchronously
+const initializeServices = async () => {
+  try {
+    if (!mapsService) {
+      const { mapsService: ms } = await import('@/services/mapsService');
+      mapsService = ms;
+    }
+    if (!locationService) {
+      const { locationService: ls } = await import('@/services/locationService');
+      locationService = ls;
+    }
+  } catch (error) {
+    console.error('Failed to load map services:', error);
+  }
+};
 
 declare global {
   interface Window {
@@ -113,7 +131,11 @@ const InteractiveMaps = () => {
   ];
 
   useEffect(() => {
-    initializeMap();
+    const init = async () => {
+      await initializeServices();
+      await initializeMap();
+    };
+    init();
   }, []);
 
   const initializeMap = async () => {
@@ -123,6 +145,12 @@ const InteractiveMaps = () => {
     setError(null);
 
     try {
+      if (!mapsService) {
+        setError('Maps service not available. Please refresh the page.');
+        setIsLoading(false);
+        return;
+      }
+
       if (!mapsService.isAPIAvailable()) {
         setError('Google Maps API key not configured. Please add your API key in settings.');
         setIsLoading(false);
@@ -370,7 +398,7 @@ const InteractiveMaps = () => {
   };
 
   const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
+    if (apiKey.trim() && mapsService) {
       mapsService.setApiKey(apiKey.trim());
       setShowSettings(false);
       setApiKey('');
@@ -414,10 +442,10 @@ const InteractiveMaps = () => {
               <MapPin className="w-6 h-6 text-blue-600" />
               <span>Interactive Campus & Accommodation Maps</span>
               <Badge
-                variant={mapsService.isAPIAvailable() ? "default" : "outline"}
+                variant={mapsService?.isAPIAvailable() ? "default" : "outline"}
                 className="ml-2"
               >
-                {mapsService.isAPIAvailable() ? "Maps Enabled" : "Setup Required"}
+                {mapsService?.isAPIAvailable() ? "Maps Enabled" : "Setup Required"}
               </Badge>
             </div>
             <Dialog open={showSettings} onOpenChange={setShowSettings}>
@@ -436,7 +464,7 @@ const InteractiveMaps = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-3">
-                      {mapsService.getAPISetupInstructions()}
+                      {mapsService?.getAPISetupInstructions() || 'Loading maps service...'}
                     </p>
                     <Input
                       type="password"
@@ -450,7 +478,7 @@ const InteractiveMaps = () => {
                     </Button>
                   </div>
                   <div className="text-xs text-gray-500">
-                    <p>Current status: {mapsService.isAPIAvailable() ? "Google Maps enabled" : "API key required"}</p>
+                    <p>Current status: {mapsService?.isAPIAvailable() ? "Google Maps enabled" : "API key required"}</p>
                   </div>
                 </div>
               </DialogContent>

@@ -1,7 +1,8 @@
 // Service Worker for PWA functionality
-const CACHE_NAME = 'studenthome-v1.0.2';
-const STATIC_CACHE_NAME = 'studenthome-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'studenthome-dynamic-v1.0.0';
+const CACHE_NAME = 'studenthome-v1.1.0';
+const STATIC_CACHE_NAME = 'studenthome-static-v1.1.0';
+const DYNAMIC_CACHE_NAME = 'studenthome-dynamic-v1.1.0';
+const IMAGE_CACHE_NAME = 'studenthome-images-v1.1.0';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -73,6 +74,21 @@ self.addEventListener('fetch', (event) => {
   if (request.url.startsWith('chrome-extension:') ||
       request.url.startsWith('moz-extension:') ||
       request.url.startsWith('safari-extension:')) {
+    return;
+  }
+
+  // Skip problematic external domains that cause CORS issues
+  const problematicDomains = [
+    'api.gov.uk',
+    'googletagmanager.com',
+    'google-analytics.com',
+    'hotjar.com',
+    'facebook.com',
+    'twitter.com'
+  ];
+
+  if (problematicDomains.some(domain => url.hostname.includes(domain))) {
+    // Let these requests go through without service worker intervention
     return;
   }
 
@@ -166,7 +182,10 @@ async function staleWhileRevalidateStrategy(request) {
     }
     return networkResponse;
   }).catch((error) => {
-    console.log('Background fetch failed:', error);
+    // Only log significant errors, not routine network failures
+    if (!error.message.includes('Failed to fetch')) {
+      console.log('Background fetch failed:', error);
+    }
     return cachedResponse || new Response('Offline', { status: 503 });
   });
 
@@ -319,56 +338,133 @@ async function clearStoredData(key) {
   });
 }
 
-// Push notification handling
+// Push notification handling with VAPID support
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
-  
-  const options = {
-    body: event.data ? event.data.text() : 'New accommodation matches found!',
+
+  let notificationData = {
+    title: 'StudentHome',
+    body: 'New accommodation matches found!',
     icon: '/icon-192x192.png',
-    badge: '/badge-72x72.png',
-    vibrate: [100, 50, 100],
+    badge: '/icon-72x72.png',
+    tag: 'default'
+  };
+
+  // Parse push data if available
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: data.title || notificationData.title,
+        body: data.body || notificationData.body,
+        icon: data.icon || notificationData.icon,
+        badge: data.badge || notificationData.badge,
+        tag: data.tag || notificationData.tag,
+        image: data.image,
+        data: data.data || {},
+        actions: data.actions || []
+      };
+    } catch (error) {
+      // Fallback to text content
+      notificationData.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    image: notificationData.image,
+    vibrate: [200, 100, 200],
     data: {
+      ...notificationData.data,
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: notificationData.data?.url || '/'
     },
-    actions: [
+    actions: notificationData.actions.length > 0 ? notificationData.actions : [
       {
-        action: 'explore',
-        title: 'View Matches',
-        icon: '/icon-explore.png'
+        action: 'view',
+        title: 'View Details',
+        icon: '/icon-view.png'
       },
       {
         action: 'close',
         title: 'Close',
         icon: '/icon-close.png'
       }
-    ]
+    ],
+    tag: notificationData.tag,
+    requireInteraction: notificationData.data?.requireInteraction || false
   };
-  
+
   event.waitUntil(
-    self.registration.showNotification('StudentHome', options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 
-// Notification click handling
+// Enhanced notification click handling
 self.addEventListener('notificationclick', (event) => {
   console.log('Notification clicked:', event);
-  
+
   event.notification.close();
-  
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/search')
-    );
-  } else if (event.action === 'close') {
-    // Just close the notification
-  } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+
+  const notificationData = event.notification.data || {};
+  const action = event.action;
+
+  let targetUrl = '/';
+
+  // Handle specific actions
+  switch (action) {
+    case 'view':
+    case 'explore':
+      targetUrl = notificationData.url || '/search';
+      break;
+    case 'save':
+      targetUrl = '/saved-properties';
+      break;
+    case 'close':
+      // Just close the notification
+      return;
+    default:
+      // Default action based on notification type
+      if (notificationData.type) {
+        switch (notificationData.type) {
+          case 'new-property':
+            targetUrl = '/search';
+            break;
+          case 'price-alert':
+            targetUrl = '/saved-properties';
+            break;
+          case 'application-update':
+            targetUrl = '/applications';
+            break;
+          case 'maintenance-reminder':
+            targetUrl = '/maintenance';
+            break;
+          default:
+            targetUrl = '/';
+        }
+      }
   }
+
+  // Open the target URL
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if app is already open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus();
+          client.navigate(targetUrl);
+          return;
+        }
+      }
+
+      // Open new window if app is not open
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
 
 console.log('Service Worker loaded successfully');

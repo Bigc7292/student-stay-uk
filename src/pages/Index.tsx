@@ -14,7 +14,18 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 const AuthDialog = lazy(() => import('@/components/AuthDialog'));
 const UserProfile = lazy(() => import('@/components/UserProfile'));
 const SearchForm = lazy(() => import('@/components/SearchForm'));
-const InteractiveMaps = lazy(() => import('@/components/InteractiveMaps'));
+const InteractiveMaps = lazy(() =>
+  import('@/components/InteractiveMaps').catch(() =>
+    import('@/components/InteractiveMapsSimple').catch(() => ({
+      default: () => (
+        <div className="p-8 text-center">
+          <h3 className="text-lg font-semibold text-red-600 mb-2">Maps Component Error</h3>
+          <p className="text-gray-600">Unable to load Interactive Maps. Please refresh the page.</p>
+        </div>
+      )
+    }))
+  )
+);
 const AIChatbot = lazy(() => import('@/components/AIChatbot'));
 const ApplicationAssistant = lazy(() => import('@/components/ApplicationAssistant'));
 const MaintenanceManager = lazy(() => import('@/components/MaintenanceManager'));
@@ -215,12 +226,12 @@ const Index = () => {
 
   // Expose navigation function globally for debugging
   useEffect(() => {
-    (window as any).navigateToTab = (tabId: string) => {
+    (window as Window & { navigateToTab?: (tabId: string) => void }).navigateToTab = (tabId: string) => {
       console.log(`🔄 Direct navigation to: ${tabId}`);
       setActiveTab(tabId);
     };
     return () => {
-      delete (window as any).navigateToTab;
+      delete (window as Window & { navigateToTab?: (tabId: string) => void }).navigateToTab;
     };
   }, []);
 
@@ -633,6 +644,7 @@ const Index = () => {
               {/* Tools Dropdown */}
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                   className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                   aria-expanded={showToolsDropdown}
@@ -655,6 +667,7 @@ const Index = () => {
                           const Icon = item.icon;
                           return (
                             <button
+                              type="button"
                               key={item.id}
                               onClick={(e) => {
                                 e.preventDefault();
@@ -705,6 +718,7 @@ const Index = () => {
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
                 <button
+                  type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
                   className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   aria-expanded={showMobileMenu}
@@ -727,6 +741,7 @@ const Index = () => {
                   const Icon = item.icon;
                   return (
                     <button
+                      type="button"
                       key={item.id}
                       onClick={() => {
                         setActiveTab(item.id);

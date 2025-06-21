@@ -52,12 +52,13 @@ Provide helpful, accurate, and practical advice. Keep responses concise but info
   async generateResponse(userMessage: string, conversationHistory: string[] = []): Promise<AIResponse> {
     console.log('🤖 Generating AI response for:', userMessage.substring(0, 50) + '...');
 
-    // First try OpenAI API if we have a key
-    if (this.apiKey) {
+    // Check if we should use OpenAI API (with quota management)
+    if (this.apiKey && this.shouldUseOpenAI()) {
       try {
         const response = await this.callOpenAIAPI(userMessage, conversationHistory);
         if (response) {
           console.log('✅ OpenAI API response generated successfully');
+          this.recordSuccessfulCall();
           return {
             content: response,
             confidence: 0.9,
@@ -66,9 +67,10 @@ Provide helpful, accurate, and practical advice. Keep responses concise but info
         }
       } catch (error) {
         console.warn('❌ OpenAI API failed, falling back to local processing:', error);
+        this.recordFailedCall(error);
       }
     } else {
-      console.log('⚠️ No OpenAI API key found, using local processing');
+      console.log('⚠️ Using local processing (API key missing or quota exceeded)');
     }
 
     // Fallback to enhanced local processing
@@ -79,6 +81,35 @@ Provide helpful, accurate, and practical advice. Keep responses concise but info
       confidence: 0.6,
       source: 'local'
     };
+  }
+
+  // Quota management methods
+  private shouldUseOpenAI(): boolean {
+    const lastError = localStorage.getItem('openai_last_error');
+    const lastErrorTime = localStorage.getItem('openai_last_error_time');
+
+    if (lastError && lastError.includes('insufficient_quota')) {
+      const errorTime = parseInt(lastErrorTime || '0');
+      const hoursSinceError = (Date.now() - errorTime) / (1000 * 60 * 60);
+
+      // Wait 1 hour before retrying after quota error
+      if (hoursSinceError < 1) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private recordSuccessfulCall(): void {
+    localStorage.removeItem('openai_last_error');
+    localStorage.removeItem('openai_last_error_time');
+  }
+
+  private recordFailedCall(error: any): void {
+    const errorMessage = error.toString();
+    localStorage.setItem('openai_last_error', errorMessage);
+    localStorage.setItem('openai_last_error_time', Date.now().toString());
   }
 
   private async callOpenAIAPI(userMessage: string, history: string[]): Promise<string | null> {

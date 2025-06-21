@@ -56,28 +56,40 @@ class AnalyticsService {
   // Initialize Google Analytics 4
   private initializeGA4() {
     const analyticsId = import.meta.env.VITE_ANALYTICS_ID;
-    if (!analyticsId || !this.isEnabled) return;
+    if (!analyticsId || !this.isEnabled || analyticsId === 'G-XXXXXXXXXX') {
+      console.log('📊 Google Analytics not configured (optional)');
+      return;
+    }
 
-    // Load GA4 script
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-    document.head.appendChild(script);
+    try {
+      // Load GA4 script with error handling
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+      script.onerror = () => {
+        console.warn('📊 Failed to load Google Analytics script (blocked by service worker or network)');
+      };
+      document.head.appendChild(script);
 
-    // Initialize gtag
-    (window as any).dataLayer = (window as any).dataLayer || [];
-    const gtag = (...args: any[]) => {
-      (window as any).dataLayer.push(args);
-    };
-    (window as any).gtag = gtag;
+      // Initialize gtag
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      const gtag = (...args: any[]) => {
+        (window as any).dataLayer.push(args);
+      };
+      (window as any).gtag = gtag;
 
-    gtag('js', new Date());
-    gtag('config', analyticsId, {
-      anonymize_ip: true,
-      allow_google_signals: false,
-      allow_ad_personalization_signals: false,
-      cookie_flags: 'SameSite=Strict;Secure'
-    });
+      gtag('js', new Date());
+      gtag('config', analyticsId, {
+        anonymize_ip: true,
+        allow_google_signals: false,
+        allow_ad_personalization_signals: false,
+        cookie_flags: 'SameSite=Strict;Secure'
+      });
+
+      console.log('📊 Google Analytics 4 initialized');
+    } catch (error) {
+      console.warn('📊 Failed to initialize Google Analytics:', error);
+    }
   }
 
   // Initialize performance monitoring
