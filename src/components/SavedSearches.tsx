@@ -28,7 +28,7 @@ const SavedSearches = ({ onSearchSelect }: SavedSearchesProps) => {
     }
   }, []);
 
-  const saveTo LocalStorage = (searches: SavedSearch[]) => {
+  const saveToLocalStorage = (searches: SavedSearch[]) => {
     localStorage.setItem('savedSearches', JSON.stringify(searches));
     setSavedSearches(searches);
   };

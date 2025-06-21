@@ -26,8 +26,8 @@ export interface Property {
   };
   photos: string[];
   floorPlan?: string;
-  energy Rating: string;
-  council Tax: string;
+  energyRating: string;
+  councilTax: string;
   tenancyLength: string[];
 }
 
@@ -142,7 +142,7 @@ export const mockProperties: Property[] = [
     bills: "£38/month extra",
     deposit: 540,
     viewingCount: 156,
-    saved Count: 41,
+    savedCount: 41,
     isNew: true,
     coordinates: [-2.2350, 53.4850],
     landlord: {
