@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Home, MessageSquare, Users, FileText, PoundSterling, HelpCircle, Star, MapPin, Bot } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +14,12 @@ import CommunityForum from '@/components/CommunityForum';
 import DepositProtection from '@/components/DepositProtection';
 import InteractiveMaps from '@/components/InteractiveMaps';
 import AIChatbot from '@/components/AIChatbot';
+import AvatarAssistant from '@/components/AvatarAssistant';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [searchResults, setSearchResults] = useState([]);
+  const [showAvatar, setShowAvatar] = useState(false);
 
   // Mock accommodation data
   const mockAccommodations = [
@@ -115,10 +116,10 @@ const Index = () => {
                   Explore Maps
                 </Button>
                 <Button 
-                  onClick={() => setActiveTab('ai-chat')} 
+                  onClick={() => setShowAvatar(!showAvatar)} 
                   className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-lg"
                 >
-                  Ask AI Assistant
+                  Talk to AI Avatar
                 </Button>
               </div>
             </div>
@@ -298,6 +299,13 @@ const Index = () => {
                 );
               })}
             </div>
+            <Button
+              onClick={() => setShowAvatar(!showAvatar)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              AI Avatar
+            </Button>
           </div>
         </div>
       </nav>
@@ -329,6 +337,27 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 py-6">
         {renderContent()}
       </main>
+
+      {/* Floating AI Avatar Assistant */}
+      {showAvatar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-xl font-bold">AI Avatar Assistant</h2>
+              <Button
+                variant="ghost"
+                onClick={() => setShowAvatar(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="p-4 max-h-[80vh] overflow-y-auto">
+              <AvatarAssistant />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8 mt-12">
