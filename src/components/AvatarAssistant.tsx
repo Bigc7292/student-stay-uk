@@ -22,6 +22,19 @@ interface Language {
   flag: string;
 }
 
+interface KnowledgeBaseEntry {
+  greeting: string;
+  budget: string;
+  documents: string;
+  legal: string;
+  universities: string;
+  safety: string;
+  international: string;
+  maintenance: string;
+  insurance: string;
+  transport: string;
+}
+
 const AvatarAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -51,36 +64,31 @@ const AvatarAssistant = () => {
   ];
 
   // Enhanced knowledge base with comprehensive student accommodation information
-  const knowledgeBase = {
+  const knowledgeBase: Record<string, KnowledgeBaseEntry> = {
     en: {
       greeting: "Hello! I'm your AI Digital Avatar Assistant with comprehensive knowledge of UK student accommodation. I can help you in multiple languages with finding housing, understanding tenant rights, budgeting, legal advice, university information, and much more. I have access to real-time data and can assist with complex queries. How can I help you today?",
-      
-      // Comprehensive accommodation advice
       budget: "For UK student accommodation budgeting: London typically costs £600-1200/month, Manchester £400-700/month, Birmingham £350-600/month, Leeds £300-550/month, Bristol £450-800/month. Consider bills (£40-80/month), council tax (usually exempt for full-time students), deposit (typically 1-6 weeks rent), and additional costs like contents insurance (£5-15/month).",
-      
       documents: "Essential documents needed: Valid passport/ID, university acceptance letter (CAS for international students), UK visa (if applicable), bank statements (3-6 months showing financial support), proof of income/guarantor details, previous landlord references, DBS check (sometimes required), and student finance confirmation.",
-      
       legal: "Your key tenant rights include: Written tenancy agreement, deposit protection in government-approved scheme, 24-hour notice for landlord inspections, protection from unfair eviction, right to live in safe and habitable conditions, protection from discrimination, and right to challenge unfair rent increases.",
-      
       universities: "I have comprehensive data on over 130 UK universities including location details, accommodation options, campus facilities, student support services, and local area information. Which university are you interested in?",
-      
       safety: "Student safety essentials: Check property safety certificates (gas, electrical, fire), ensure working smoke/CO detectors, verify secure locks and lighting, research neighborhood crime rates, join university safety schemes, and always inform someone of your whereabouts when viewing properties.",
-      
       international: "For international students: Arrive early for accommodation search, understand UK rental terminology, know your visa restrictions, set up UK bank account promptly, register with GP and university, understand local customs, and join international student support groups.",
-      
       maintenance: "Maintenance responsibilities: Landlord handles structural repairs, heating/hot water systems, electrical safety, and pest control. Tenants handle minor repairs, cleaning, garden maintenance (if specified), and reporting issues promptly. Always document problems with photos and keep communication records.",
-      
       insurance: "Student accommodation insurance covers: Personal belongings (laptops, phones, clothes), public liability, accidental damage to landlord's property, and sometimes rent protection. Costs typically £5-20/month. University halls often include basic coverage.",
-      
       transport: "Transport considerations: Check bus/train connections to university (aim for under 30 minutes commute), investigate student discount schemes, consider cycling infrastructure, evaluate walkability scores, and factor transport costs (£50-100/month) into your budget."
     },
-    // Additional languages with key translations
     es: {
       greeting: "¡Hola! Soy tu Asistente Avatar Digital de IA con conocimiento integral sobre alojamiento estudiantil en Reino Unido. Puedo ayudarte en varios idiomas con búsqueda de vivienda, derechos de inquilinos, presupuesto, asesoría legal y mucho más. ¿Cómo puedo ayudarte hoy?",
       budget: "Para presupuesto de alojamiento estudiantil en Reino Unido: Londres típicamente cuesta £600-1200/mes, Manchester £400-700/mes, Birmingham £350-600/mes. Considera facturas (£40-80/mes), impuesto municipal (usualmente exento para estudiantes de tiempo completo).",
-      // ... other translations
-    },
-    // ... other languages
+      documents: "Documentos esenciales necesarios: Pasaporte/ID válido, carta de aceptación universitaria, visa del Reino Unido (si aplica), estados de cuenta bancarios, prueba de ingresos/detalles del garante.",
+      legal: "Tus derechos clave como inquilino incluyen: Contrato de arrendamiento escrito, protección de depósito, aviso de 24 horas para inspecciones del propietario, protección contra desalojo injusto.",
+      universities: "Tengo datos completos sobre más de 130 universidades del Reino Unido incluyendo detalles de ubicación, opciones de alojamiento y servicios de apoyo estudiantil.",
+      safety: "Aspectos esenciales de seguridad estudiantil: Verificar certificados de seguridad de la propiedad, asegurar detectores de humo funcionando, verificar cerraduras seguras.",
+      international: "Para estudiantes internacionales: Llegar temprano para búsqueda de alojamiento, entender terminología de alquiler del Reino Unido, conocer restricciones de visa.",
+      maintenance: "Responsabilidades de mantenimiento: El propietario maneja reparaciones estructurales, sistemas de calefacción/agua caliente, seguridad eléctrica y control de plagas.",
+      insurance: "El seguro de alojamiento estudiantil cubre: Pertenencias personales, responsabilidad pública, daños accidentales a la propiedad del propietario.",
+      transport: "Consideraciones de transporte: Verificar conexiones de autobús/tren a la universidad, investigar esquemas de descuento estudiantil, considerar infraestructura ciclista."
+    }
   };
 
   // API simulation for real-time data
@@ -98,48 +106,48 @@ const AvatarAssistant = () => {
 
   const generateIntelligentResponse = (userMessage: string, language: string): string => {
     const lowerMessage = userMessage.toLowerCase();
-    const langKnowledge = knowledgeBase[language as keyof typeof knowledgeBase] || knowledgeBase.en;
+    const langKnowledge = knowledgeBase[language] || knowledgeBase.en;
     
     // Advanced keyword matching and context understanding
     if (lowerMessage.includes('budget') || lowerMessage.includes('cost') || lowerMessage.includes('price') || lowerMessage.includes('money') || lowerMessage.includes('afford')) {
-      return langKnowledge.budget || knowledgeBase.en.budget;
+      return langKnowledge.budget;
     }
     
     if (lowerMessage.includes('document') || lowerMessage.includes('application') || lowerMessage.includes('paperwork') || lowerMessage.includes('visa') || lowerMessage.includes('requirements')) {
-      return langKnowledge.documents || knowledgeBase.en.documents;
+      return langKnowledge.documents;
     }
     
     if (lowerMessage.includes('rights') || lowerMessage.includes('legal') || lowerMessage.includes('law') || lowerMessage.includes('tenant') || lowerMessage.includes('landlord')) {
-      return langKnowledge.legal || knowledgeBase.en.legal;
+      return langKnowledge.legal;
     }
     
     if (lowerMessage.includes('university') || lowerMessage.includes('college') || lowerMessage.includes('campus') || lowerMessage.includes('education')) {
-      return langKnowledge.universities || knowledgeBase.en.universities;
+      return langKnowledge.universities;
     }
     
     if (lowerMessage.includes('safety') || lowerMessage.includes('security') || lowerMessage.includes('safe') || lowerMessage.includes('crime')) {
-      return langKnowledge.safety || knowledgeBase.en.safety;
+      return langKnowledge.safety;
     }
     
     if (lowerMessage.includes('international') || lowerMessage.includes('foreign') || lowerMessage.includes('overseas') || lowerMessage.includes('visa')) {
-      return langKnowledge.international || knowledgeBase.en.international;
+      return langKnowledge.international;
     }
     
     if (lowerMessage.includes('maintenance') || lowerMessage.includes('repair') || lowerMessage.includes('broken') || lowerMessage.includes('fix')) {
-      return langKnowledge.maintenance || knowledgeBase.en.maintenance;
+      return langKnowledge.maintenance;
     }
     
     if (lowerMessage.includes('insurance') || lowerMessage.includes('coverage') || lowerMessage.includes('protection') || lowerMessage.includes('belongings')) {
-      return langKnowledge.insurance || knowledgeBase.en.insurance;
+      return langKnowledge.insurance;
     }
     
     if (lowerMessage.includes('transport') || lowerMessage.includes('travel') || lowerMessage.includes('commute') || lowerMessage.includes('bus') || lowerMessage.includes('train')) {
-      return langKnowledge.transport || knowledgeBase.en.transport;
+      return langKnowledge.transport;
     }
     
     // Contextual responses based on conversation flow
     if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
-      return langKnowledge.greeting || knowledgeBase.en.greeting;
+      return langKnowledge.greeting;
     }
     
     // Default intelligent response
@@ -175,7 +183,7 @@ const AvatarAssistant = () => {
       };
     }
 
-    const greeting = knowledgeBase[currentLanguage as keyof typeof knowledgeBase]?.greeting || knowledgeBase.en.greeting;
+    const greeting = knowledgeBase[currentLanguage]?.greeting || knowledgeBase.en.greeting;
     setMessages([{
       id: '1',
       content: greeting,
@@ -292,7 +300,7 @@ const AvatarAssistant = () => {
 
   const handleLanguageChange = (langCode: string) => {
     setCurrentLanguage(langCode);
-    const greeting = knowledgeBase[langCode as keyof typeof knowledgeBase]?.greeting || knowledgeBase.en.greeting;
+    const greeting = knowledgeBase[langCode]?.greeting || knowledgeBase.en.greeting;
     
     const aiMessage: Message = {
       id: Date.now().toString(),
