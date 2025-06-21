@@ -1,0 +1,207 @@
+{
+  "mcpServers": {
+    "studenthome-mcp": {
+      "description": "StudentHome AI-Powered Student Accommodation Platform MCP Integration",
+      "version": "1.0.0",
+      "tools": [
+        {
+          "name": "search-properties",
+          "description": "Search for student accommodation properties using real APIs (Zoopla, OpenRent)",
+          "parameters": {
+            "location": {
+              "type": "string",
+              "description": "UK location to search for properties (e.g., Manchester, London, Birmingham)"
+            },
+            "maxPrice": {
+              "type": "number",
+              "description": "Maximum price per month in GBP"
+            },
+            "propertyType": {
+              "type": "string",
+              "enum": ["studio", "shared", "ensuite", "house", "flat"],
+              "description": "Type of property to search for"
+            },
+            "bedrooms": {
+              "type": "number",
+              "description": "Number of bedrooms required"
+            }
+          }
+        },
+        {
+          "name": "calculate-route",
+          "description": "Calculate routes from accommodation to various destinations using Google Maps",
+          "parameters": {
+            "origin": {
+              "type": "string",
+              "description": "Starting location (accommodation address)"
+            },
+            "destinations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["university", "supermarket", "gym", "hospital", "work", "cafe", "entertainment", "home", "friends"]
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Destination address"
+                  }
+                }
+              }
+            },
+            "travelMode": {
+              "type": "string",
+              "enum": ["walking", "driving", "cycling", "transit"],
+              "description": "Mode of transportation"
+            }
+          }
+        },
+        {
+          "name": "ai-chat",
+          "description": "Chat with AI assistant for property advice and student accommodation help",
+          "parameters": {
+            "message": {
+              "type": "string",
+              "description": "Message to send to the AI assistant"
+            },
+            "context": {
+              "type": "object",
+              "properties": {
+                "userPreferences": {
+                  "type": "object",
+                  "description": "User preferences for accommodation"
+                },
+                "currentLocation": {
+                  "type": "string",
+                  "description": "Current location context"
+                },
+                "budget": {
+                  "type": "number",
+                  "description": "Budget constraints"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "test-apis",
+          "description": "Test the real property APIs (Zoopla, OpenRent) to verify connectivity",
+          "parameters": {
+            "apiType": {
+              "type": "string",
+              "enum": ["zoopla", "openrent", "all"],
+              "description": "Which API to test"
+            }
+          }
+        },
+        {
+          "name": "manage-api-keys",
+          "description": "Manage API keys for various services",
+          "parameters": {
+            "action": {
+              "type": "string",
+              "enum": ["list", "validate", "configure"],
+              "description": "Action to perform on API keys"
+            },
+            "service": {
+              "type": "string",
+              "enum": ["google-maps", "rapidapi", "apify", "openai"],
+              "description": "Service to manage API keys for"
+            }
+          }
+        }
+      ],
+      "resources": [
+        {
+          "name": "property-data",
+          "description": "Real property data from Zoopla and OpenRent APIs",
+          "mimeType": "application/json"
+        },
+        {
+          "name": "route-data",
+          "description": "Route information from Google Maps API",
+          "mimeType": "application/json"
+        },
+        {
+          "name": "user-preferences",
+          "description": "User accommodation preferences and settings",
+          "mimeType": "application/json"
+        }
+      ],
+      "prompts": [
+        {
+          "name": "property-search-assistant",
+          "description": "Help users find suitable student accommodation",
+          "arguments": [
+            {
+              "name": "location",
+              "description": "University or city location"
+            },
+            {
+              "name": "budget",
+              "description": "Monthly budget in GBP"
+            },
+            {
+              "name": "preferences",
+              "description": "Accommodation preferences"
+            }
+          ]
+        },
+        {
+          "name": "route-planning-assistant",
+          "description": "Help plan routes from accommodation to important locations",
+          "arguments": [
+            {
+              "name": "accommodation",
+              "description": "Accommodation address"
+            },
+            {
+              "name": "destinations",
+              "description": "List of important destinations"
+            }
+          ]
+        },
+        {
+          "name": "student-advice-assistant",
+          "description": "Provide advice on student accommodation and living",
+          "arguments": [
+            {
+              "name": "question",
+              "description": "Student's question or concern"
+            },
+            {
+              "name": "context",
+              "description": "Additional context about the student's situation"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "environment": {
+    "VITE_GOOGLE_MAPS_API_KEY": "AIzaSyCJ8y-vOnm_EGMLnrBdBSDLOfF7krNYk8s",
+    "VITE_RAPIDAPI_KEY": "185071a5bfmsh670e0fb96e945b9p17c4aajsncc978fb964b2",
+    "VITE_RAPIDAPI_HOST": "uk-properties.p.rapidapi.com",
+    "VITE_APIFY_TOKEN": "apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ",
+    "VITE_OPENRENT_ACTOR": "vivid-softwares~openrent-scraper",
+    "VITE_OPENAI_API_KEY": "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"
+  },
+  "metadata": {
+    "name": "StudentHome MCP",
+    "version": "1.0.0",
+    "description": "AI-Powered Student Accommodation Platform with real property APIs",
+    "author": "StudentHome Team",
+    "homepage": "http://localhost:8080",
+    "repository": "https://github.com/Bigc7292/student-stay-uk.git",
+    "capabilities": [
+      "Real property search via Zoopla and OpenRent APIs",
+      "Google Maps route planning and navigation",
+      "AI-powered accommodation recommendations",
+      "API testing and validation tools",
+      "Student-focused advice and assistance"
+    ],
+    "tags": ["student", "accommodation", "property", "maps", "ai", "uk"]
+  }
+}

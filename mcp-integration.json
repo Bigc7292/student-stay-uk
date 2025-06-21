@@ -1,0 +1,56 @@
+{
+  "mcpServers": {
+    "studenthome-platform": {
+      "command": "node",
+      "args": ["./Vibe-Coder-MCP/build/index.js"],
+      "cwd": "./",
+      "transport": "stdio",
+      "env": {
+        "LLM_CONFIG_PATH": "./Vibe-Coder-MCP/llm_config.json",
+        "LOG_LEVEL": "debug",
+        "NODE_ENV": "production",
+        "VIBE_CODER_OUTPUT_DIR": "./Vibe-Coder-MCP/VibeCoderOutput",
+        "CODE_MAP_ALLOWED_DIR": "./src",
+        "VIBE_TASK_MANAGER_READ_DIR": "./",
+        "OPENROUTER_API_KEY": "your_openrouter_key_here",
+        "GOOGLE_MAPS_API_KEY": "AIzaSyCJ8y-vOnm_EGMLnrBdBSDLOfF7krNYk8s",
+        "RAPIDAPI_KEY": "185071a5bfmsh670e0fb96e945b9p17c4aajsncc978fb964b2",
+        "APIFY_TOKEN": "apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ",
+        "OPENAI_API_KEY": "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"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "research",
+        "generate-rules",
+        "generate-user-stories", 
+        "generate-task-list",
+        "generate-prd",
+        "generate-fullstack-starter-kit",
+        "refactor-code",
+        "git-summary",
+        "run-workflow",
+        "map-codebase",
+        "search-properties",
+        "calculate-route",
+        "ai-chat",
+        "test-apis"
+      ]
+    }
+  },
+  "studenthome_tools": {
+    "property_search": {
+      "description": "Search for student accommodation using real APIs",
+      "apis": ["zoopla", "openrent"],
+      "features": ["price_filtering", "location_search", "property_type_filtering"]
+    },
+    "route_planning": {
+      "description": "Calculate routes using Google Maps API",
+      "features": ["multiple_destinations", "travel_modes", "real_time_directions"]
+    },
+    "ai_assistant": {
+      "description": "AI-powered student accommodation advice",
+      "model": "openai-gpt",
+      "features": ["property_recommendations", "area_advice", "student_tips"]
+    }
+  }
+}

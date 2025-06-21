@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Bot, User, Loader2, BookOpen, Home, PoundSterling, FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { aiService } from '@/services/aiService';
+import { BookOpen, Bot, FileText, Home, Key, Loader2, PoundSterling, Send, Settings, User } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: string;
@@ -12,20 +14,25 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   category?: string;
+  confidence?: number;
+  source?: 'openai' | 'local' | 'fallback';
 }
 
 const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your AI assistant for UK student accommodation. I can help you with finding housing, understanding tenancy rights, budgeting, application processes, and much more. What would you like to know?",
+      content: "Hello! I'm your AI assistant powered by OpenAI for UK student accommodation. I can help you with finding housing, understanding tenancy rights, budgeting, application processes, route planning, and much more. What would you like to know?",
       isUser: false,
       timestamp: new Date(),
-      category: 'general'
+      category: 'general',
+      source: 'local'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Quick action suggestions
@@ -36,73 +43,7 @@ const AIChatbot = () => {
     { text: "How do I find safe accommodation?", category: "safety", icon: Home }
   ];
 
-  // Comprehensive knowledge base
-  const knowledgeBase = {
-    budget: {
-      keywords: ['budget', 'cost', 'price', 'money', 'afford', 'expensive', 'cheap', 'rent'],
-      responses: [
-        "For UK student accommodation, budget around £400-800/month depending on location. London is typically £600-1200/month, while northern cities like Manchester or Liverpool range £300-600/month.",
-        "Remember to factor in additional costs: utilities (£50-100/month), internet (£20-40/month), contents insurance (£5-15/month), and council tax (usually exempt for full-time students).",
-        "Consider shared accommodation to reduce costs - a shared house typically costs £400-600/month compared to £600-1000/month for a studio apartment."
-      ]
-    },
-    documents: {
-      keywords: ['documents', 'application', 'paperwork', 'forms', 'ID', 'proof', 'requirements'],
-      responses: [
-        "Essential documents for UK student accommodation applications: Valid passport/ID, university acceptance letter, proof of income/student finance, bank statements (3-6 months), references from previous landlords or employers.",
-        "International students also need: Visa documentation, ATAS certificate (if required), proof of English language proficiency, and sometimes a UK-based guarantor or deposit guarantee scheme.",
-        "Prepare digital copies of all documents - most applications are now online. Ensure documents are recent (within 3 months) and officially translated if not in English."
-      ]
-    },
-    legal: {
-      keywords: ['rights', 'legal', 'tenancy', 'contract', 'lease', 'deposit', 'eviction', 'landlord'],
-      responses: [
-        "UK tenancy rights: You have the right to a written tenancy agreement, receipt for deposits, 24-hour notice for landlord visits, and protection from unfair eviction.",
-        "Your deposit must be protected in a government-approved scheme (DPS, MyDeposits, or TDS) within 30 days. You should receive information about which scheme protects your deposit.",
-        "Common tenancy types: Assured Shorthold Tenancy (AST) is most common, usually 6-12 months. Always read contracts carefully and understand break clauses, rent increase terms, and maintenance responsibilities."
-      ]
-    },
-    safety: {
-      keywords: ['safe', 'security', 'dangerous', 'crime', 'area', 'neighborhood', 'scam'],
-      responses: [
-        "Safety checklist: Research crime rates using police.uk, visit properties in person, check for working smoke/carbon monoxide alarms, secure locks, and well-lit entrances.",
-        "Red flags to avoid: Landlords asking for money before viewing, prices significantly below market rate, no proper tenancy agreement, unwillingness to provide references or deposit protection details.",
-        "Use reputable sources: University accommodation services, established letting agents (check they're registered with a professional body), and verified platforms like SpareRoom or Rightmove."
-      ]
-    },
-    international: {
-      keywords: ['international', 'visa', 'overseas', 'foreign', 'guarantor', 'bank account'],
-      responses: [
-        "International students: Open a UK bank account ASAP (you'll need your passport, visa, university enrollment letter, and proof of address). Consider Monzo, Starling, or HSBC for student-friendly options.",
-        "If you can't get a UK guarantor, look for properties that accept international guarantors or use services like Housing Hand or Global Guarantor for guarantee schemes.",
-        "Arrive early if possible - viewing properties in person is crucial. If not possible, use video calls and ask for virtual tours. Never send money without seeing official contracts."
-      ]
-    },
-    areas: {
-      keywords: ['area', 'location', 'neighborhood', 'transport', 'commute', 'shops', 'nightlife'],
-      responses: [
-        "Research areas thoroughly: Check transport links to your university, nearby amenities (supermarkets, pharmacies, banks), and student population density for community feel.",
-        "Use online tools: Check commute times on Citymapper, explore areas on Google Street View, read local Facebook groups and Reddit communities for honest reviews.",
-        "Consider: Proximity to campus vs. cost trade-off, noise levels (avoid main roads if you're a light sleeper), and access to essential services within walking distance."
-      ]
-    },
-    viewing: {
-      keywords: ['viewing', 'visit', 'inspection', 'see', 'tour', 'check'],
-      responses: [
-        "Property viewing checklist: Test water pressure, check heating/hot water, inspect for damp/mold, test all appliances, check internet speed, and assess natural light.",
-        "Ask important questions: When was the property last renovated? Who handles maintenance? Are there any upcoming works? What's included in rent? How do you report issues?",
-        "Take photos/videos during viewing (with permission) and don't feel pressured to decide immediately. A good landlord will give you time to consider."
-      ]
-    },
-    maintenance: {
-      keywords: ['maintenance', 'repair', 'broken', 'fix', 'heating', 'plumbing', 'landlord responsibility'],
-      responses: [
-        "Landlord responsibilities: Structural repairs, heating/hot water systems, electrical safety, gas safety certificates, and keeping exterior/common areas in good condition.",
-        "Tenant responsibilities: Minor repairs, changing light bulbs, keeping property clean, reporting issues promptly, and not causing damage through negligence.",
-        "Report issues in writing (email is fine) and keep records. For urgent repairs (no heating/hot water), landlords must respond within 24-48 hours."
-      ]
-    }
-  };
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -112,35 +53,55 @@ const AIChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  const generateResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Find matching category
-    for (const [category, data] of Object.entries(knowledgeBase)) {
-      if (data.keywords.some(keyword => lowerMessage.includes(keyword))) {
-        const responses = data.responses;
-        return responses[Math.floor(Math.random() * responses.length)];
-      }
+  const generateResponse = async (userMessage: string): Promise<void> => {
+    try {
+      // Get conversation history for context
+      const conversationHistory = messages
+        .slice(-10) // Last 10 messages for context
+        .map(msg => msg.content);
+
+      // Call AI service
+      const aiResponse = await aiService.generateResponse(userMessage, conversationHistory);
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: aiResponse.content,
+        isUser: false,
+        timestamp: new Date(),
+        category: 'response',
+        confidence: aiResponse.confidence,
+        source: aiResponse.source
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+
+      // Fallback response
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I apologize, but I'm having trouble processing your request right now. Please try again or contact support if the issue persists.",
+        isUser: false,
+        timestamp: new Date(),
+        category: 'error',
+        source: 'fallback'
+      };
+
+      setMessages(prev => [...prev, fallbackMessage]);
+    } finally {
+      setIsTyping(false);
     }
-    
-    // General responses for unmatched queries
-    const generalResponses = [
-      "I'd be happy to help with that! Could you be more specific about what aspect of student accommodation you're interested in?",
-      "That's a great question! For the most accurate information, I'd recommend checking with your university's accommodation services as well. What specific details can I help you with?",
-      "I can help you with accommodation budgeting, legal rights, application processes, area research, and safety tips. What would you like to know more about?",
-      "For complex legal or financial matters, I recommend consulting with your university's student support services or Citizens Advice Bureau. Is there a specific accommodation concern I can help address?"
-    ];
-    
-    return generalResponses[Math.floor(Math.random() * generalResponses.length)];
   };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    const currentMessage = inputMessage;
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: currentMessage,
       isUser: true,
       timestamp: new Date()
     };
@@ -149,20 +110,8 @@ const AIChatbot = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
-    setTimeout(() => {
-      const response = generateResponse(inputMessage);
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response,
-        isUser: false,
-        timestamp: new Date(),
-        category: 'response'
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 2000);
+    // Generate AI response
+    await generateResponse(currentMessage);
   };
 
   const handleQuickAction = (actionText: string) => {
@@ -176,14 +125,76 @@ const AIChatbot = () => {
     }
   };
 
+  const handleSaveApiKey = () => {
+    if (apiKey.trim()) {
+      aiService.setApiKey(apiKey.trim());
+      setShowSettings(false);
+      setApiKey('');
+
+      // Add confirmation message
+      const confirmMessage: Message = {
+        id: Date.now().toString(),
+        content: "Great! I've saved your OpenAI API key. I can now provide more intelligent and contextual responses using GPT-3.5. Try asking me something about student accommodation!",
+        isUser: false,
+        timestamp: new Date(),
+        category: 'system',
+        source: 'local'
+      };
+      setMessages(prev => [...prev, confirmMessage]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="h-[600px] flex flex-col">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center space-x-2">
-            <Bot className="w-6 h-6 text-blue-600" />
-            <span>AI Student Housing Assistant</span>
-            <Badge variant="secondary" className="ml-2">24/7 Available</Badge>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Bot className="w-6 h-6 text-blue-600" />
+              <span>AI Student Housing Assistant</span>
+              <Badge variant="secondary" className="ml-2">24/7 Available</Badge>
+              <Badge
+                variant={aiService.isAPIAvailable() ? "default" : "outline"}
+                className="ml-2"
+              >
+                {aiService.isAPIAvailable() ? "Advanced AI" : "Basic AI"}
+              </Badge>
+            </div>
+            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center space-x-2">
+                    <Key className="w-5 h-5" />
+                    <span>AI Settings</span>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {aiService.getAPISetupInstructions()}
+                    </p>
+                    <Input
+                      type="password"
+                      placeholder="Enter your OpenAI API key (optional - already configured)"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      className="mb-3"
+                    />
+                    <Button onClick={handleSaveApiKey} disabled={!apiKey.trim()}>
+                      Save API Key
+                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <p>Current status: {aiService.isAPIAvailable() ? "Advanced AI enabled" : "Using basic AI responses"}</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </CardTitle>
         </CardHeader>
         
@@ -218,14 +229,30 @@ const AIChatbot = () => {
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
+                      <div className={`flex items-center justify-between text-xs mt-1 ${
                         message.isUser ? 'text-blue-100' : 'text-gray-500'
                       }`}>
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </p>
+                        <span>
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        {!message.isUser && message.source && (
+                          <div className="flex items-center space-x-1">
+                            {message.source === 'openai' && (
+                              <Badge variant="secondary" className="text-xs px-1 py-0">
+                                🤖 OpenAI GPT
+                              </Badge>
+                            )}
+                            {message.confidence && (
+                              <span className="opacity-70">
+                                {Math.round(message.confidence * 100)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

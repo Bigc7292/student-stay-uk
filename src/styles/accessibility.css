@@ -1,0 +1,422 @@
+/* Accessibility Styles for WCAG Compliance */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Screen reader only content that becomes visible on focus */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 9999;
+  font-weight: bold;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* High contrast mode */
+.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffff00;
+  --primary-foreground: #000000;
+  --secondary: #ffffff;
+  --secondary-foreground: #000000;
+  --muted: #333333;
+  --muted-foreground: #ffffff;
+  --accent: #ffff00;
+  --accent-foreground: #000000;
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+  --border: #ffffff;
+  --input: #333333;
+  --ring: #ffff00;
+}
+
+.high-contrast * {
+  border-color: currentColor !important;
+}
+
+.high-contrast img {
+  filter: contrast(150%) brightness(150%);
+}
+
+.high-contrast .bg-gradient-to-r {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+/* Large text mode */
+.large-text {
+  font-size: 120% !important;
+}
+
+.large-text h1 {
+  font-size: 3rem !important;
+}
+
+.large-text h2 {
+  font-size: 2.5rem !important;
+}
+
+.large-text h3 {
+  font-size: 2rem !important;
+}
+
+.large-text h4 {
+  font-size: 1.75rem !important;
+}
+
+.large-text h5 {
+  font-size: 1.5rem !important;
+}
+
+.large-text h6 {
+  font-size: 1.25rem !important;
+}
+
+.large-text .text-sm {
+  font-size: 1rem !important;
+}
+
+.large-text .text-xs {
+  font-size: 0.875rem !important;
+}
+
+.large-text button,
+.large-text input,
+.large-text select,
+.large-text textarea {
+  font-size: 1.125rem !important;
+  padding: 0.75rem !important;
+}
+
+/* Reduced motion */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduced-motion .animate-spin {
+  animation: none !important;
+}
+
+.reduced-motion .animate-pulse {
+  animation: none !important;
+}
+
+.reduced-motion .animate-bounce {
+  animation: none !important;
+}
+
+/* Enhanced focus indicators */
+.enhanced-focus *:focus {
+  outline: 3px solid #ffff00 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(255, 255, 0, 0.3) !important;
+}
+
+.enhanced-focus button:focus,
+.enhanced-focus a:focus,
+.enhanced-focus input:focus,
+.enhanced-focus select:focus,
+.enhanced-focus textarea:focus {
+  outline: 3px solid #0066cc !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(0, 102, 204, 0.3) !important;
+}
+
+/* Screen reader optimized */
+.screen-reader-optimized {
+  line-height: 1.6 !important;
+}
+
+.screen-reader-optimized p,
+.screen-reader-optimized li {
+  margin-bottom: 1rem !important;
+}
+
+.screen-reader-optimized h1,
+.screen-reader-optimized h2,
+.screen-reader-optimized h3,
+.screen-reader-optimized h4,
+.screen-reader-optimized h5,
+.screen-reader-optimized h6 {
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Color blind friendly */
+.color-blind-friendly {
+  --primary: #0066cc;
+  --secondary: #6b7280;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #0891b2;
+}
+
+.color-blind-friendly .text-red-600 {
+  color: #dc2626 !important;
+  text-decoration: underline !important;
+}
+
+.color-blind-friendly .text-green-600 {
+  color: #059669 !important;
+  font-weight: bold !important;
+}
+
+.color-blind-friendly .text-yellow-600 {
+  color: #d97706 !important;
+  font-style: italic !important;
+}
+
+.color-blind-friendly .bg-red-500 {
+  background-color: #dc2626 !important;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 4px
+  ) !important;
+}
+
+.color-blind-friendly .bg-green-500 {
+  background-color: #059669 !important;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 4px
+  ) !important;
+}
+
+/* Keyboard navigation helpers */
+.keyboard-navigation [tabindex="-1"]:focus {
+  outline: none !important;
+}
+
+.keyboard-navigation [role="button"]:focus,
+.keyboard-navigation [role="link"]:focus {
+  outline: 2px solid #0066cc !important;
+  outline-offset: 2px !important;
+}
+
+/* Interactive element states */
+[role="button"]:hover,
+[role="link"]:hover {
+  cursor: pointer;
+}
+
+[role="button"][aria-disabled="true"],
+[role="link"][aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Form accessibility */
+.form-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-error::before {
+  content: "⚠ ";
+  font-weight: bold;
+}
+
+input:invalid,
+select:invalid,
+textarea:invalid {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 1px #dc2626 !important;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 1px #dc2626 !important;
+}
+
+/* Required field indicators */
+.required::after {
+  content: " *";
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Loading states */
+.loading {
+  position: relative;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #0066cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.reduced-motion .loading::after {
+  animation: none !important;
+  border: 2px solid #0066cc;
+  border-radius: 0;
+  width: 4px;
+  height: 4px;
+}
+
+/* Modal and dialog accessibility */
+[role="dialog"] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+[role="dialog"][aria-hidden="true"] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Table accessibility */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  text-align: left;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+}
+
+td {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+}
+
+/* List accessibility */
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+
+li[role="listitem"] {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Navigation accessibility */
+nav[role="navigation"] ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+nav[role="navigation"] a {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+nav[role="navigation"] a:hover,
+nav[role="navigation"] a:focus {
+  background-color: #f3f4f6;
+  text-decoration: underline;
+}
+
+nav[role="navigation"] a[aria-current="page"] {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: bold;
+}
+
+/* Print styles for accessibility */
+@media print {
+  .skip-link,
+  .sr-only,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
