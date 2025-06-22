@@ -1,4 +1,3 @@
-
 // Unified Property Service Manager
 // Clean, efficient management of all property data sources
 
@@ -10,7 +9,7 @@ import type {
 } from './core/PropertyServiceInterface';
 
 interface ServiceInstance {
-  service: PropertyServiceInterface;
+  service: Partial<PropertyServiceInterface> & { searchProperties: PropertyServiceInterface['searchProperties'] };
   config: {
     enabled: boolean;
     priority: number;
@@ -58,7 +57,7 @@ class PropertyServiceManager {
   // Dynamically load a service
   private async loadService(name: string, priority: number, timeout: number): Promise<void> {
     try {
-      let service: PropertyServiceInterface | null = null;
+      let service: any = null;
 
       switch (name) {
         case 'zoopla':
@@ -119,11 +118,15 @@ class PropertyServiceManager {
           break;
       }
 
-      if (service && typeof service.isAvailable === 'function') {
+      if (service && typeof service.searchProperties === 'function') {
+        const isAvailable = typeof service.isAvailable === 'function' 
+          ? service.isAvailable() 
+          : true;
+        
         this.services.set(name, {
           service,
           config: {
-            enabled: service.isAvailable(),
+            enabled: isAvailable,
             priority,
             timeout,
             retryAttempts: 3,
@@ -259,7 +262,12 @@ class PropertyServiceManager {
   // Get healthy services sorted by priority and success rate
   private getHealthyServices(): [string, ServiceInstance][] {
     return Array.from(this.services.entries())
-      .filter(([_, instance]) => instance.config.enabled && instance.service.isAvailable())
+      .filter(([_, instance]) => {
+        const isAvailable = typeof instance.service.isAvailable === 'function' 
+          ? instance.service.isAvailable() 
+          : true;
+        return instance.config.enabled && isAvailable;
+      })
       .sort(([nameA, instanceA], [nameB, instanceB]) => {
         // Sort by priority first
         const priorityDiff = instanceA.config.priority - instanceB.config.priority;
@@ -456,7 +464,19 @@ class PropertyServiceManager {
     const instance = this.services.get(serviceName);
     if (!instance) return null;
 
-    return instance.service.getStatus();
+    if (typeof instance.service.getStatus === 'function') {
+      return instance.service.getStatus();
+    }
+
+    // Provide default status if service doesn't implement getStatus
+    return {
+      available: true,
+      healthy: true,
+      lastCheck: new Date(),
+      errorCount: instance.config.errorCount,
+      successRate: this.calculateSuccessRate(instance),
+      averageResponseTime: 1000
+    };
   }
 
   enableService(serviceName: string): void {
@@ -481,7 +501,7 @@ class PropertyServiceManager {
     return {
       size: this.cache.size,
       maxSize: 50,
-      hitRate: 0 // Would need to track hits vs misses
+      hitRate: 0
     };
   }
 }
