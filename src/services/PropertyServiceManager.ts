@@ -1,3 +1,4 @@
+
 // Unified Property Service Manager
 // Clean, efficient management of all property data sources
 
@@ -61,32 +62,60 @@ class PropertyServiceManager {
 
       switch (name) {
         case 'zoopla':
-          const { realPropertyService } = await import('./realPropertyService');
-          service = realPropertyService;
+          try {
+            const { realPropertyService } = await import('./realPropertyService');
+            service = realPropertyService;
+          } catch (error) {
+            console.warn(`Could not load zoopla service:`, error);
+          }
           break;
         case 'openrent':
-          const { openRentService } = await import('./openRentService');
-          service = openRentService;
+          try {
+            const { openRentService } = await import('./openRentService');
+            service = openRentService;
+          } catch (error) {
+            console.warn(`Could not load openrent service:`, error);
+          }
           break;
         case 'spareroom':
-          const { spareRoomService } = await import('./spareRoomService');
-          service = spareRoomService;
+          try {
+            const { spareRoomService } = await import('./spareRoomService');
+            service = spareRoomService;
+          } catch (error) {
+            console.warn(`Could not load spareroom service:`, error);
+          }
           break;
         case 'rightmove':
-          const { rightmoveService } = await import('./rightmoveService');
-          service = rightmoveService;
+          try {
+            const { rightmoveService } = await import('./rightmoveService');
+            service = rightmoveService;
+          } catch (error) {
+            console.warn(`Could not load rightmove service:`, error);
+          }
           break;
         case 'gumtree':
-          const { gumtreeService } = await import('./gumtreeService');
-          service = gumtreeService;
+          try {
+            const { gumtreeService } = await import('./gumtreeService');
+            service = gumtreeService;
+          } catch (error) {
+            console.warn(`Could not load gumtree service:`, error);
+          }
           break;
         case 'onthemarket':
-          const { onTheMarketService } = await import('./onTheMarketService');
-          service = onTheMarketService;
+          try {
+            const { onTheMarketService } = await import('./onTheMarketService');
+            service = onTheMarketService;
+          } catch (error) {
+            console.warn(`Could not load onthemarket service:`, error);
+          }
           break;
         case 'zooplacheerio':
-          const { zooplaCheerioService } = await import('./zooplaCheerioService');
-          service = zooplaCheerioService;
+          try {
+            const { zooplaCheerioService } = await import('./zooplaCheerioService');
+            service = zooplaCheerioService;
+          } catch (error) {
+            console.warn(`Could not load zooplacheerio service:`, error);
+          }
           break;
       }
 
