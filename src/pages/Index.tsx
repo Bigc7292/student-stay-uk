@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,16 +15,14 @@ const UserProfile = lazy(() => import('@/components/UserProfile'));
 // Import SearchForm directly for better reliability
 import SearchForm from '@/components/SearchForm';
 const InteractiveMaps = lazy(() =>
-  import('@/components/InteractiveMaps').catch(() =>
-    import('@/components/InteractiveMapsSimple').catch(() => ({
-      default: () => (
-        <div className="p-8 text-center">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">Maps Component Error</h3>
-          <p className="text-gray-600">Unable to load Interactive Maps. Please refresh the page.</p>
-        </div>
-      )
-    }))
-  )
+  import('@/components/InteractiveMaps').catch(() => ({
+    default: () => (
+      <div className="p-8 text-center">
+        <h3 className="text-lg font-semibold text-red-600 mb-2">Maps Component Error</h3>
+        <p className="text-gray-600">Unable to load Interactive Maps. Please refresh the page.</p>
+      </div>
+    )
+  }))
 );
 // Import AIChatbot directly to avoid dynamic import issues
 import AIChatbot from '@/components/AIChatbot';
@@ -198,7 +195,9 @@ const Index = () => {
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // Analytics initialization
