@@ -1,3 +1,4 @@
+
 import React from 'react';
 import * as Sentry from '@sentry/react';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
@@ -121,11 +122,17 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError, eventI
 const SentryErrorBoundary = Sentry.withErrorBoundary(
   ({ children }: { children: React.ReactNode }) => <>{children}</>,
   {
-    fallback: ErrorFallback,
+    fallback: ({ error, resetError, eventId }) => (
+      <ErrorFallback 
+        error={error as Error} 
+        resetError={resetError} 
+        eventId={eventId} 
+      />
+    ),
     beforeCapture: (scope, error, errorInfo) => {
       // Add additional context before sending to Sentry
       scope.setTag('errorBoundary', true);
-      scope.setContext('errorInfo', errorInfo);
+      scope.setContext('errorInfo', errorInfo as any);
       scope.setLevel('error');
       
       // Add breadcrumb
@@ -134,8 +141,8 @@ const SentryErrorBoundary = Sentry.withErrorBoundary(
         category: 'error',
         level: 'error',
         data: {
-          error: error.message,
-          componentStack: errorInfo.componentStack
+          error: (error as Error).message,
+          componentStack: (errorInfo as any).componentStack
         }
       });
     }
