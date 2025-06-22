@@ -13,7 +13,8 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 // Lazy load components for better performance
 const AuthDialog = lazy(() => import('@/components/AuthDialog'));
 const UserProfile = lazy(() => import('@/components/UserProfile'));
-const SearchForm = lazy(() => import('@/components/SearchForm'));
+// Import SearchForm directly for better reliability
+import SearchForm from '@/components/SearchForm';
 const InteractiveMaps = lazy(() =>
   import('@/components/InteractiveMaps').catch(() =>
     import('@/components/InteractiveMapsSimple').catch(() => ({
@@ -26,7 +27,8 @@ const InteractiveMaps = lazy(() =>
     }))
   )
 );
-const AIChatbot = lazy(() => import('@/components/AIChatbot'));
+// Import AIChatbot directly to avoid dynamic import issues
+import AIChatbot from '@/components/AIChatbot';
 const ApplicationAssistant = lazy(() => import('@/components/ApplicationAssistant'));
 const MaintenanceManager = lazy(() => import('@/components/MaintenanceManager'));
 const BillSplitter = lazy(() => import('@/components/BillSplitter'));
@@ -39,8 +41,10 @@ const AccessibilitySettings = lazy(() => import('@/components/AccessibilitySetti
 const MonitoringDashboard = lazy(() => import('@/components/MonitoringDashboard'));
 const APIKeyManager = lazy(() => import('@/components/APIKeyManager'));
 const APIKeyTester = lazy(() => import('@/components/APIKeyTester'));
-const RoutePlanner = lazy(() => import('@/components/RoutePlanner'));
-const APITester = lazy(() => import('@/components/APITester'));
+// Import RoutePlanner directly to avoid dynamic import issues
+import RoutePlanner from '@/components/RoutePlanner';
+// Import APITester directly for better reliability
+import APITester from '@/components/APITester';
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -63,37 +67,51 @@ const Index = () => {
   const [realProperties, setRealProperties] = useState([]);
 
   useEffect(() => {
-    // Load real property data instead of mock data
+    // Load real property data using optimized service manager
     const loadRealProperties = async () => {
       try {
-        const { realPropertyService } = await import('@/services/realPropertyService');
-        const properties = await realPropertyService.searchProperties({
+        const { propertyServiceManager } = await import('@/services/PropertyServiceManager');
+        const result = await propertyServiceManager.searchProperties({
           location: 'Manchester',
           maxPrice: 1000,
           propertyType: 'studio'
         });
 
-        if (properties.length > 0) {
-          setRealProperties(properties.slice(0, 6)); // Show first 6 properties
-          setSearchResults(properties.slice(0, 6));
+        if (result.properties.length > 0) {
+          // Transform properties to match UI expectations
+          const transformedProperties = result.properties.slice(0, 6).map(property => ({
+            id: property.id,
+            title: property.title,
+            price: property.price,
+            location: property.location,
+            amenities: [...property.features, ...property.amenities].slice(0, 3),
+            rating: (property.qualityScore + property.studentSuitability) / 20, // Convert to 5-star scale
+            available: property.available,
+            image: property.images[0] || null
+          }));
+
+          setRealProperties(transformedProperties);
+          setSearchResults(transformedProperties);
+
+          console.log(`✅ Loaded ${transformedProperties.length} properties from ${Object.keys(result.summary.sourceBreakdown).length} sources`);
         } else {
-          // Fallback to basic data without images
+          // Use optimized fallback
           const fallbackData = [
             {
               id: 1,
               title: "Student Studio - City Centre",
-              price: 180,
+              price: 650,
               location: "Manchester City Centre",
-              amenities: ["Wi-Fi", "Laundry", "24/7 Security"],
+              amenities: ["WiFi", "Bills Included", "Near University"],
               rating: 4.5,
               available: true
             },
             {
               id: 2,
-              title: "Shared House - Near Campus",
-              price: 120,
+              title: "Shared House - University Quarter",
+              price: 450,
               location: "University Quarter",
-              amenities: ["Wi-Fi", "Parking", "Garden"],
+              amenities: ["WiFi", "Garden", "Student Friendly"],
               rating: 4.2,
               available: true
             }
@@ -102,15 +120,15 @@ const Index = () => {
           setSearchResults(fallbackData);
         }
       } catch (error) {
-        console.error('Failed to load real properties:', error);
-        // Use minimal fallback without images
+        console.error('Failed to load properties:', error);
+        // Minimal fallback
         const fallbackData = [
           {
             id: 1,
             title: "Student Accommodation Available",
-            price: 150,
-            location: "Various Locations",
-            amenities: ["Wi-Fi", "Utilities Included"],
+            price: 500,
+            location: "Manchester",
+            amenities: ["WiFi", "Utilities Included"],
             rating: 4.0,
             available: true
           }
@@ -506,7 +524,8 @@ const Index = () => {
                         {accommodation.amenities.map((amenity) => (
                           <Badge key={amenity} variant="secondary" className="text-xs">
                             {amenity}
-                          </Badge>
+                          </Badge
+                          >
                         ))}
                       </div>
                       <Button className="w-full" disabled={!accommodation.available}>
@@ -575,8 +594,10 @@ const Index = () => {
       }
     };
 
-    // Wrap lazy-loaded components in Suspense
-    if (activeTab !== 'home') {
+    // Components that need Suspense (still lazy-loaded)
+    const suspenseComponents = ['maps', 'reviews', 'application', 'maintenance', 'bills', 'legal', 'forum', 'deposit', 'accessibility', 'monitoring', 'api-keys', 'api-test'];
+
+    if (suspenseComponents.includes(activeTab)) {
       return (
         <Suspense fallback={<LoadingSpinner />}>
           {getComponent()}

@@ -25,34 +25,60 @@ export default defineConfig(({ mode }) => ({
   },
   // Performance optimizations
   build: {
-    // Enable source maps for debugging
-    sourcemap: true,
+    // Enable source maps for debugging in development only
+    sourcemap: mode === 'development',
+    // Target modern browsers for better optimization
+    target: 'esnext',
     // Optimize chunk splitting
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks: (id) => {
           // Vendor chunks
-          'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tooltip'],
-          'icons-vendor': ['lucide-react'],
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons-vendor';
+            }
+            if (id.includes('@tanstack') || id.includes('react-query')) {
+              return 'query-vendor';
+            }
+            if (id.includes('@sentry')) {
+              return 'monitoring-vendor';
+            }
+            return 'vendor';
+          }
 
-          // Feature chunks - only include actual imports
-          'maps-chunk': ['./src/services/mapsService.ts'],
-          'ai-chunk': ['./src/services/aiService.ts'],
-          'api-chunk': ['./src/services/realPropertyService.ts'],
+          // Feature chunks
+          if (id.includes('/services/maps') || id.includes('/components/InteractiveMaps')) {
+            return 'maps-chunk';
+          }
+          if (id.includes('/services/ai') || id.includes('/components/AIChatbot')) {
+            return 'ai-chunk';
+          }
+          if (id.includes('/services/') && (id.includes('Property') || id.includes('Rent'))) {
+            return 'api-chunk';
+          }
         },
       },
     },
     // Optimize for production
-    minify: 'terser',
+    minify: mode === 'production' ? 'terser' : false,
     terserOptions: {
       compress: {
-        drop_console: mode === 'production', // Remove console.logs in production only
+        drop_console: mode === 'production',
         drop_debugger: true,
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : [],
       },
     },
     // Set chunk size warning limit
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500,
+    // Optimize CSS
+    cssCodeSplit: true,
   },
   // Preview server configuration
   preview: {
@@ -64,10 +90,23 @@ export default defineConfig(({ mode }) => ({
     include: [
       'react',
       'react-dom',
+      'react-router-dom',
       'lucide-react',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-tooltip',
+      '@radix-ui/react-scroll-area',
+      '@tanstack/react-query',
     ],
+    exclude: [
+      // Exclude large dependencies that should be loaded on demand
+      '@sentry/react',
+      'apify-client',
+    ],
+  },
+  // Environment variables
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
 }));

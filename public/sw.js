@@ -84,11 +84,16 @@ self.addEventListener('fetch', (event) => {
     'google-analytics.com',
     'hotjar.com',
     'facebook.com',
-    'twitter.com'
+    'twitter.com',
+    'rapidapi.com',
+    'apify.com',
+    'uk-properties.p.rapidapi.com',
+    'openrent-scraper.apify.com'
   ];
 
-  if (problematicDomains.some(domain => url.hostname.includes(domain))) {
-    // Let these requests go through without service worker intervention
+  if (problematicDomains.some(domain => url.hostname.includes(domain)) ||
+      url.hostname !== self.location.hostname) {
+    // Let external requests go through without service worker intervention
     return;
   }
 
@@ -115,27 +120,56 @@ self.addEventListener('fetch', (event) => {
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
-    
-    if (networkResponse.ok) {
+
+    if (networkResponse && networkResponse.ok) {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       cache.put(request, networkResponse.clone());
+      return networkResponse;
     }
-    
-    return networkResponse;
+
+    // If response is not ok, try cache
+    throw new Error(`Network response not ok: ${networkResponse?.status}`);
   } catch (error) {
-    console.log('Network failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
+    // Don't log routine network failures
+    if (!error.message.includes('Failed to fetch')) {
+      console.log('Network failed, trying cache:', error);
     }
-    
+
+    try {
+      const cachedResponse = await caches.match(request);
+
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+    } catch (cacheError) {
+      // Ignore cache errors
+    }
+
     // Return offline page for navigation requests
     if (request.destination === 'document') {
-      return caches.match('/offline.html') || new Response('Offline', { status: 503 });
+      try {
+        const offlineResponse = await caches.match('/offline.html');
+        if (offlineResponse) {
+          return offlineResponse;
+        }
+      } catch (offlineError) {
+        // Ignore offline page errors
+      }
+
+      // Create a basic offline response
+      return new Response('<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your internet connection.</p></body></html>', {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'Content-Type': 'text/html' }
+      });
     }
-    
-    throw error;
+
+    // For non-navigation requests, return a basic error response
+    return new Response('Service Unavailable', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'text/plain' }
+    });
   }
 }
 
@@ -173,20 +207,21 @@ async function staleWhileRevalidateStrategy(request) {
   const cachedResponse = await cache.match(request);
 
   const fetchPromise = fetch(request).then((networkResponse) => {
-    if (networkResponse.ok && !request.url.startsWith('chrome-extension:')) {
+    if (networkResponse && networkResponse.ok && !request.url.startsWith('chrome-extension:')) {
       try {
         cache.put(request, networkResponse.clone());
       } catch (error) {
-        console.warn('Cache put failed:', error);
+        // Silently ignore cache put failures
       }
     }
     return networkResponse;
   }).catch((error) => {
-    // Only log significant errors, not routine network failures
-    if (!error.message.includes('Failed to fetch')) {
-      console.log('Background fetch failed:', error);
-    }
-    return cachedResponse || new Response('Offline', { status: 503 });
+    // Silently handle network failures - they're expected
+    return cachedResponse || new Response('Service Unavailable', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'text/plain' }
+    });
   });
 
   return cachedResponse || fetchPromise;

@@ -229,13 +229,25 @@ class RealPropertyService {
       console.log(`🔍 Testing Zoopla API with outcode: ${outcode}`);
       const url = `https://${this.rapidApiHost}/rent/${outcode}`;
 
+      // Check if we're in a browser environment and online
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        console.warn('⚠️ Device is offline, skipping Zoopla API call');
+        return [];
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'X-RapidAPI-Key': this.rapidApiKey,
           'X-RapidAPI-Host': this.rapidApiHost
-        }
+        },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         this.recordZooplaError(response.status);

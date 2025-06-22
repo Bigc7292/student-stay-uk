@@ -1,1 +1,39 @@
-
+{
+  "mcpServers": {
+    "Bright Data": {
+      "command": "npx",
+      "args": ["@brightdata/mcp"],
+      "env": {
+        "API_TOKEN": "daf20140ecc930ba83243d2b1ec89e5e3f97d508176d7e318e6c17822f932fb2",
+        "WEB_UNLOCKER_ZONE": "mcp_unlocker",
+        "BROWSER_ZONE": "mcp_browser",
+        "RATE_LIMIT": "100/1h"
+      }
+    },
+    "n8n": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "supergateway",
+        "--sse",
+        "https://yoururl/sse"
+      ]
+    },
+    "mcp-server-time": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_time",
+        "--local-timezone=America/Los_Angeles"
+      ],
+      "env": {}
+    }
+  },
+  "github.copilot.enable": {
+    "*": false
+  },
+  "workbench.sideBar.location": "right",
+  "containers.containerClient": "com.microsoft.visualstudio.containers.docker",
+  "workbench.editor.empty.hint": "hidden",
+  "gocodeo.hasShownWalkthrough": true
+}

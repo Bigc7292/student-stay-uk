@@ -57,14 +57,13 @@ class SentryService {
         // Release tracking
         release: `studenthome@${import.meta.env.VITE_APP_VERSION || '1.0.0'}`,
         
-        // Integration configuration
+        // Integration configuration (simplified to avoid React dependencies)
         integrations: [
-          // Browser tracing integration (simplified)
+          // Basic browser tracing without React router integration
           Sentry.browserTracingIntegration({
-            // Disable automatic route change tracking to avoid React dependency
-            routingInstrumentation: undefined
+            routingInstrumentation: Sentry.createRoutingInstrumentation()
           }),
-          
+
           // Replay integration for session recording (optional)
           Sentry.replayIntegration({
             maskAllText: false,
