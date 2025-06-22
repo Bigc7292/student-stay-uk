@@ -5,7 +5,6 @@ import './index.css';
 
 // Use the existing ErrorBoundary instead of SentryErrorBoundary to avoid CommonJS issues
 import ErrorBoundary from './components/ErrorBoundary';
-import './services/sentryService';
 
 const container = document.getElementById("root");
 if (!container) {
