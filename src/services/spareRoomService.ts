@@ -1,4 +1,3 @@
-
 import { ApifyClient } from 'apify-client';
 
 export interface SpareRoomProperty {
@@ -33,6 +32,9 @@ export interface SpareRoomSearchParams {
   radius: number;
 }
 
+// Import the Property interface from PropertyServiceManager
+import type { Property } from './PropertyServiceManager';
+
 class SpareRoomService {
   private client: ApifyClient;
   private readonly actorId = 'dtrungtin/spareroom-scraper';
@@ -47,10 +49,11 @@ class SpareRoomService {
     console.info('🏠 SpareRoom Apify scraper service initialized');
   }
 
-  async searchProperties(params: SpareRoomSearchParams): Promise<SpareRoomProperty[]> {
+  async searchProperties(params: SpareRoomSearchParams): Promise<Property[]> {
     if (!this.apiKey) {
       console.warn('SpareRoom: Apify API key not configured, returning mock data');
-      return this.getMockProperties();
+      const mockProperties = this.getMockProperties();
+      return mockProperties.map(prop => this.transformToStandardProperty(prop));
     }
 
     try {
@@ -71,12 +74,69 @@ class SpareRoomService {
       const properties = items.map(item => this.transformScrapedProperty(item));
       
       console.info(`✅ SpareRoom: Found ${properties.length} properties`);
-      return properties;
+      return properties.map(prop => this.transformToStandardProperty(prop));
 
     } catch (error) {
       console.error('❌ SpareRoom: Search failed:', error);
-      return this.getMockProperties();
+      const mockProperties = this.getMockProperties();
+      return mockProperties.map(prop => this.transformToStandardProperty(prop));
     }
+  }
+
+  // Transform SpareRoomProperty to standard Property interface
+  private transformToStandardProperty(spareRoomProp: SpareRoomProperty): Property {
+    return {
+      id: spareRoomProp.id,
+      title: spareRoomProp.title,
+      price: spareRoomProp.price,
+      location: spareRoomProp.location,
+      features: [
+        spareRoomProp.furnished ? 'Furnished' : 'Unfurnished',
+        spareRoomProp.billsIncluded ? 'Bills Included' : 'Bills Not Included',
+        `${spareRoomProp.bedrooms} Bedroom${spareRoomProp.bedrooms > 1 ? 's' : ''}`,
+        `${spareRoomProp.bathrooms} Bathroom${spareRoomProp.bathrooms > 1 ? 's' : ''}`
+      ],
+      amenities: this.extractAmenities(spareRoomProp.description),
+      images: spareRoomProp.images,
+      available: true,
+      qualityScore: this.calculateQualityScore(spareRoomProp),
+      studentSuitability: this.calculateStudentSuitability(spareRoomProp)
+    };
+  }
+
+  private extractAmenities(description: string): string[] {
+    const amenities: string[] = [];
+    const lowerDesc = description.toLowerCase();
+    
+    if (lowerDesc.includes('wifi') || lowerDesc.includes('internet')) amenities.push('WiFi');
+    if (lowerDesc.includes('parking')) amenities.push('Parking');
+    if (lowerDesc.includes('garden')) amenities.push('Garden');
+    if (lowerDesc.includes('gym')) amenities.push('Gym');
+    if (lowerDesc.includes('washing')) amenities.push('Washing Machine');
+    if (lowerDesc.includes('dishwasher')) amenities.push('Dishwasher');
+    
+    return amenities;
+  }
+
+  private calculateQualityScore(property: SpareRoomProperty): number {
+    let score = 50; // Base score
+    
+    if (property.images.length > 0) score += 20;
+    if (property.description.length > 100) score += 10;
+    if (property.furnished) score += 10;
+    if (property.billsIncluded) score += 10;
+    
+    return Math.min(score, 100);
+  }
+
+  private calculateStudentSuitability(property: SpareRoomProperty): number {
+    let score = 60; // Base score for SpareRoom (generally student-friendly)
+    
+    if (property.billsIncluded) score += 15;
+    if (property.furnished) score += 15;
+    if (property.price < 600) score += 10; // Affordable for students
+    
+    return Math.min(score, 100);
   }
 
   private transformScrapedProperty(item: any): SpareRoomProperty {
