@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { analyticsService } from '@/services/analyticsService';
 import { authService, User as UserType } from '@/services/authService';
 import { performanceService } from '@/services/performanceService';
 import '@/styles/accessibility.css';
-import { BarChart3, Bot, ChevronDown, FileText, HelpCircle, Home, Key, LogIn, MapPin, Menu, Navigation, PoundSterling, Search, Settings, Star, TestTube, User, Users, X } from 'lucide-react';
+import { BarChart3, Bot, ChevronDown, FileText, HelpCircle, Home, Key, LogIn, MapPin, Menu, Navigation, PoundSterling, Search, Settings, Star, TestTube, User, Users, X, Zap } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 
 // Lazy load components for better performance
@@ -15,18 +14,27 @@ const AuthDialog = lazy(() => import('@/components/AuthDialog'));
 const UserProfile = lazy(() => import('@/components/UserProfile'));
 // Import SearchForm directly for better reliability
 import SearchForm from '@/components/SearchForm';
-const InteractiveMaps = lazy(() =>
-  import('@/components/InteractiveMaps').catch(() =>
-    import('@/components/InteractiveMapsSimple').catch(() => ({
-      default: () => (
-        <div className="p-8 text-center">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">Maps Component Error</h3>
-          <p className="text-gray-600">Unable to load Interactive Maps. Please refresh the page.</p>
-        </div>
-      )
-    }))
-  )
-);
+// Create a safe lazy loader for InteractiveMaps with fallback
+const InteractiveMaps = lazy(async () => {
+  try {
+    return await import('@/components/InteractiveMaps');
+  } catch (error) {
+    console.warn('Failed to load InteractiveMaps, falling back to simple version:', error);
+    try {
+      return await import('@/components/InteractiveMapsSimple');
+    } catch (fallbackError) {
+      console.error('Failed to load fallback maps component:', fallbackError);
+      return {
+        default: () => (
+          <div className="p-8 text-center">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">Maps Component Error</h3>
+            <p className="text-gray-600">Unable to load Interactive Maps. Please refresh the page.</p>
+          </div>
+        )
+      };
+    }
+  }
+});
 // Import AIChatbot directly to avoid dynamic import issues
 import AIChatbot from '@/components/AIChatbot';
 const ApplicationAssistant = lazy(() => import('@/components/ApplicationAssistant'));
@@ -45,6 +53,17 @@ const APIKeyTester = lazy(() => import('@/components/APIKeyTester'));
 import RoutePlanner from '@/components/RoutePlanner';
 // Import APITester directly for better reliability
 import APITester from '@/components/APITester';
+// Import GoogleMapsAPITester for testing the new API key
+const GoogleMapsAPITester = lazy(() => import('@/components/GoogleMapsAPITester'));
+// Import DebugAPIKey for debugging API key issues
+const DebugAPIKey = lazy(() => import('@/components/DebugAPIKey'));
+// Import SimpleMapsTest for basic maps testing
+const SimpleMapsTest = lazy(() => import('@/components/SimpleMapsTest'));
+// Import WorkingMaps for reliable maps implementation
+const WorkingMaps = lazy(() => import('@/components/WorkingMaps'));
+// Import DirectMaps for direct DOM manipulation approach
+const DirectMaps = lazy(() => import('@/components/DirectMaps'));
+// Import BrightDataTester for testing Web Unlocker
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -278,6 +297,8 @@ const Index = () => {
     'Developer Tools': [
       { id: 'property-test', label: 'Property APIs', icon: Home },
       { id: 'api-test', label: 'Test APIs', icon: TestTube },
+      { id: 'maps-test', label: 'Maps API Test', icon: MapPin },
+      { id: 'bright-data-test', label: 'Bright Data Test', icon: Zap },
       { id: 'api-keys', label: 'API Keys', icon: Key },
       { id: 'monitoring', label: 'Monitoring', icon: BarChart3 }
     ],
@@ -351,6 +372,16 @@ const Index = () => {
           return <APIKeyManager />;
         case 'api-test':
           return <APIKeyTester />;
+        case 'maps-test':
+          return <GoogleMapsAPITester />;
+        case 'debug-api':
+          return <DebugAPIKey />;
+        case 'simple-maps':
+          return <SimpleMapsTest />;
+        case 'working-maps':
+          return <WorkingMaps />;
+        case 'direct-maps':
+          return <DirectMaps />;
         case 'routes':
           return <RoutePlanner />;
         case 'property-test':
@@ -402,6 +433,61 @@ const Index = () => {
                   size="sm"
                 >
                   AI Assistant
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🧪 Maps API Test clicked');
+                    setActiveTab('maps-test');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                >
+                  🗺️ Test New Maps API
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🔍 Debug API clicked');
+                    setActiveTab('debug-api');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+                >
+                  🔍 Debug API Key
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🗺️ Simple Maps Test clicked');
+                    setActiveTab('simple-maps');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                >
+                  🗺️ Simple Maps Test
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🗺️ Working Maps clicked');
+                    setActiveTab('working-maps');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                >
+                  ✅ Working Maps
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('🗺️ Direct Maps clicked');
+                    setActiveTab('direct-maps');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                >
+                  🎯 Direct Maps
                 </Button>
               </div>
             </div>
@@ -595,7 +681,7 @@ const Index = () => {
     };
 
     // Components that need Suspense (still lazy-loaded)
-    const suspenseComponents = ['maps', 'reviews', 'application', 'maintenance', 'bills', 'legal', 'forum', 'deposit', 'accessibility', 'monitoring', 'api-keys', 'api-test'];
+    const suspenseComponents = ['maps', 'reviews', 'application', 'maintenance', 'bills', 'legal', 'forum', 'deposit', 'accessibility', 'monitoring', 'api-keys', 'api-test', 'maps-test', 'debug-api', 'simple-maps', 'working-maps', 'direct-maps'];
 
     if (suspenseComponents.includes(activeTab)) {
       return (
@@ -668,7 +754,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                   className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  aria-expanded={showToolsDropdown}
+                  aria-expanded={!!showToolsDropdown}
                   aria-haspopup="true"
                 >
                   <Settings className="w-4 h-4" />
@@ -742,7 +828,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
                   className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  aria-expanded={showMobileMenu}
+                  aria-expanded={!!showMobileMenu}
                   aria-label="Toggle mobile menu"
                 >
                   {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

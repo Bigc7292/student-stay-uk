@@ -23,11 +23,24 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables - NEVER COMMIT THESE!
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
+*.env
+.env.*
+
+# API Keys and Secrets - EXTRA PROTECTION
+**/api-keys.json
+**/secrets.json
+**/*secret*
+**/*key*
+**/*token*
+**/config/keys.js
+**/config/secrets.js
 
 # MCP Development Tools (separate git repository)
 Vibe-Coder-MCP/

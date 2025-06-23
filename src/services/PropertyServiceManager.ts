@@ -2,10 +2,10 @@
 // Clean, efficient management of all property data sources
 
 import type {
-  PropertySearchFilters,
-  StandardProperty,
-  PropertyServiceInterface,
-  PropertyServiceStatus
+    PropertySearchFilters,
+    PropertyServiceInterface,
+    PropertyServiceStatus,
+    StandardProperty
 } from './core/PropertyServiceInterface';
 
 interface ServiceInstance {
@@ -65,7 +65,7 @@ class PropertyServiceManager {
           service = realPropertyService;
           break;
         case 'openrent':
-          const { openRentService } = await import('./openRentService');
+          const { realPropertyService: openRentService } = await import('./realPropertyService');
           service = openRentService;
           break;
         case 'spareroom':
@@ -460,3 +460,4 @@ class PropertyServiceManager {
 // Export singleton instance
 export const propertyServiceManager = new PropertyServiceManager();
 export { PropertyServiceManager };
+

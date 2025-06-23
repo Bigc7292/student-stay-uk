@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variable Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Environment Variable Test</h1>
+    
+    <div>
+        <h2>Vite Environment Variables</h2>
+        <div id="env-results"></div>
+    </div>
+
+    <script type="module">
+        function addResult(message, type) {
+            const container = document.getElementById('env-results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        // Test environment variables
+        addResult('Testing Vite environment variables...', 'info');
+        
+        // Check if import.meta.env is available
+        if (typeof import.meta !== 'undefined' && import.meta.env) {
+            addResult('✅ import.meta.env is available', 'success');
+            
+            // Check specific variables
+            const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+            const mode = import.meta.env.MODE;
+            const dev = import.meta.env.DEV;
+            const prod = import.meta.env.PROD;
+            
+            addResult(`Mode: ${mode}`, 'info');
+            addResult(`Dev: ${dev}`, 'info');
+            addResult(`Prod: ${prod}`, 'info');
+            
+            if (apiKey) {
+                addResult(`✅ VITE_GOOGLE_MAPS_API_KEY found: ${apiKey.substring(0, 20)}...`, 'success');
+                
+                if (apiKey === 'AIzaSyB8SD-e7NsRs3r3pLwiU6jBO5qLmwVfhO0') {
+                    addResult('✅ API key matches expected value', 'success');
+                } else {
+                    addResult('❌ API key does not match expected value', 'error');
+                }
+            } else {
+                addResult('❌ VITE_GOOGLE_MAPS_API_KEY not found', 'error');
+            }
+            
+            // List all VITE_ variables
+            const viteVars = Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'));
+            addResult(`Found ${viteVars.length} VITE_ variables: ${viteVars.join(', ')}`, 'info');
+            
+        } else {
+            addResult('❌ import.meta.env is not available', 'error');
+        }
+    </script>
+</body>
+</html>

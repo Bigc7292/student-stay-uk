@@ -181,7 +181,7 @@
     }
   },
   "environment": {
-    "VITE_GOOGLE_MAPS_API_KEY": "AIzaSyCJ8y-vOnm_EGMLnrBdBSDLOfF7krNYk8s",
+    "VITE_GOOGLE_MAPS_API_KEY": "s4fm_2SM8Kly196qcszrM-FX9IM=",
     "VITE_RAPIDAPI_KEY": "185071a5bfmsh670e0fb96e945b9p17c4aajsncc978fb964b2",
     "VITE_RAPIDAPI_HOST": "uk-properties.p.rapidapi.com",
     "VITE_APIFY_TOKEN": "apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ",

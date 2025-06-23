@@ -1,8 +1,8 @@
-import React from 'react';
-import * as Sentry from '@sentry/react';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import * as Sentry from '@sentry/browser';
+import { AlertTriangle, Bug, Home, RefreshCw } from 'lucide-react';
+import React from 'react';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -88,7 +88,8 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError, eventI
             </p>
             <p className="mt-1">
               You can also try going back to the{' '}
-              <button 
+              <button
+                type="button"
                 onClick={handleGoHome}
                 className="text-blue-600 hover:text-blue-800 underline"
               >
@@ -117,29 +118,60 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError, eventI
   );
 };
 
-// Create Sentry Error Boundary with custom fallback
-const SentryErrorBoundary = Sentry.withErrorBoundary(
-  ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  {
-    fallback: ErrorFallback,
-    beforeCapture: (scope, error, errorInfo) => {
-      // Add additional context before sending to Sentry
-      scope.setTag('errorBoundary', true);
-      scope.setContext('errorInfo', errorInfo);
-      scope.setLevel('error');
-      
-      // Add breadcrumb
-      Sentry.addBreadcrumb({
-        message: 'Error boundary triggered',
-        category: 'error',
-        level: 'error',
-        data: {
-          error: error.message,
-          componentStack: errorInfo.componentStack
+// Create React Error Boundary with Sentry integration
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+  eventId?: string;
+}
+
+class SentryErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Send to Sentry if available
+    try {
+      const eventId = Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack
+          }
+        },
+        tags: {
+          errorBoundary: true
         }
       });
+      this.setState({ eventId });
+    } catch (sentryError) {
+      console.error('Failed to send error to Sentry:', sentryError);
     }
+
+    console.error('Error caught by boundary:', error, errorInfo);
   }
-);
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      return (
+        <ErrorFallback
+          error={this.state.error}
+          eventId={this.state.eventId}
+          resetError={() => this.setState({ hasError: false, error: undefined, eventId: undefined })}
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default SentryErrorBoundary;

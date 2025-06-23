@@ -1,5 +1,5 @@
 // Sentry Error Tracking and Performance Monitoring Service
-import * as Sentry from "@sentry/react";
+import * as Sentry from "@sentry/browser";
 
 interface SentryConfig {
   dsn: string;
@@ -57,13 +57,8 @@ class SentryService {
         // Release tracking
         release: `studenthome@${import.meta.env.VITE_APP_VERSION || '1.0.0'}`,
         
-        // Integration configuration (simplified to avoid React dependencies)
+        // Integration configuration (browser-compatible)
         integrations: [
-          // Basic browser tracing without React router integration
-          Sentry.browserTracingIntegration({
-            routingInstrumentation: Sentry.createRoutingInstrumentation()
-          }),
-
           // Replay integration for session recording (optional)
           Sentry.replayIntegration({
             maskAllText: false,

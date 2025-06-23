@@ -64,7 +64,7 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 GEMINI_MODEL=google/gemini-2.5-flash-preview-05-20
 
 # StudentHome API Keys
-GOOGLE_MAPS_API_KEY="AIzaSyCJ8y-vOnm_EGMLnrBdBSDLOfF7krNYk8s"
+GOOGLE_MAPS_API_KEY="AIzaSyB8SD-e7NsRs3r3pLwiU6jBO5qLmwVfhO0"
 RAPIDAPI_KEY="185071a5bfmsh670e0fb96e945b9p17c4aajsncc978fb964b2"
 RAPIDAPI_HOST="uk-properties.p.rapidapi.com"
 APIFY_TOKEN="apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ"
@@ -80,7 +80,7 @@ VIBE_TASK_MANAGER_READ_DIR="../"
 ### Update StudentHome .env.local
 ```env
 # Ensure all API keys are configured
-VITE_GOOGLE_MAPS_API_KEY="AIzaSyCJ8y-vOnm_EGMLnrBdBSDLOfF7krNYk8s"
+VITE_GOOGLE_MAPS_API_KEY="AIzaSyB8SD-e7NsRs3r3pLwiU6jBO5qLmwVfhO0"
 VITE_RAPIDAPI_KEY="185071a5bfmsh670e0fb96e945b9p17c4aajsncc978fb964b2"
 VITE_RAPIDAPI_HOST="uk-properties.p.rapidapi.com"
 VITE_APIFY_TOKEN="apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ"

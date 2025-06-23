@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "Bright Data": {
+    "brightdata": {
       "command": "npx",
       "args": ["@brightdata/mcp"],
       "env": {
@@ -28,12 +28,5 @@
       ],
       "env": {}
     }
-  },
-  "github.copilot.enable": {
-    "*": false
-  },
-  "workbench.sideBar.location": "right",
-  "containers.containerClient": "com.microsoft.visualstudio.containers.docker",
-  "workbench.editor.empty.hint": "hidden",
-  "gocodeo.hasShownWalkthrough": true
+  }
 }

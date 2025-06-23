@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'hoist-non-react-statics': path.resolve(__dirname, './node_modules/hoist-non-react-statics/dist/hoist-non-react-statics.cjs.js'),
     },
   },
   // Performance optimizations
@@ -97,6 +98,7 @@ export default defineConfig(({ mode }) => ({
       '@radix-ui/react-tooltip',
       '@radix-ui/react-scroll-area',
       '@tanstack/react-query',
+      'hoist-non-react-statics',
     ],
     exclude: [
       // Exclude large dependencies that should be loaded on demand

@@ -1,9 +1,9 @@
 // Optimized Loading Components
 // Clean, accessible loading states with performance optimization
 
-import React from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2, Search, Home, MapPin } from 'lucide-react';
+import { Home, Loader2, MapPin, Search } from 'lucide-react';
+import React from 'react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -75,10 +75,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({
             className={cn(
               baseClasses,
               variantClasses[variant],
-              index === lines - 1 && 'w-3/4', // Last line shorter
+              index === lines - 1 ? 'w-3/4' : '', // Last line shorter
               className
             )}
-            style={{ width, height }}
           />
         ))}
       </div>
@@ -90,9 +89,11 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       className={cn(
         baseClasses,
         variantClasses[variant],
-        className
+        className,
+        width ? (typeof width === 'number' ? `w-[${width}px]` : width) : '',
+        height ? (typeof height === 'number' ? `h-[${height}px]` : height) : ''
       )}
-      style={{ width, height }}
+      // Remove style prop entirely to avoid inline styles
     />
   );
 };
@@ -141,8 +142,8 @@ export const PageLoading: React.FC<PageLoadingProps> = ({
         {showProgress && (
           <div className="w-64 bg-gray-200 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              className={"bg-blue-600 h-2 rounded-full transition-all duration-300" + (progress ? ` w-[${Math.min(100, Math.max(0, progress))}%]` : '')}
+              // Remove style prop, use Tailwind for width
             />
           </div>
         )}
@@ -280,27 +281,26 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 };
 
 // Progressive loading for lists
-interface ProgressiveLoadingProps {
-  items: any[];
-  renderItem: (item: any, index: number) => React.ReactNode;
-  skeleton: React.ComponentType;
-  loading: boolean;
+interface ProgressiveLoadingProps<T> {
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  loading?: boolean;
   loadingCount?: number;
+  SkeletonComponent?: React.ComponentType;
   className?: string;
 }
 
-export const ProgressiveLoading: React.FC<ProgressiveLoadingProps> = ({
+export const ProgressiveLoading = <T,>({
   items,
   renderItem,
-  skeleton: SkeletonComponent,
-  loading,
+  loading = false,
   loadingCount = 3,
+  SkeletonComponent = Skeleton,
   className
-}) => {
+}: ProgressiveLoadingProps<T>) => {
   return (
     <div className={className}>
       {items.map(renderItem)}
-      
       {loading && Array.from({ length: loadingCount }).map((_, index) => (
         <SkeletonComponent key={`skeleton-${index}`} />
       ))}
