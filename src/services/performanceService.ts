@@ -1,4 +1,3 @@
-
 import * as Sentry from '@sentry/react';
 
 // Performance monitoring and optimization service
@@ -16,7 +15,7 @@ export interface PerformanceMetrics {
   lcp: number;
   fid: number;
   cls: number;
-  interactionDelay: number; // Add missing property
+  interactionDelay: number;
   score: number;
   timestamp: number;
   userAgent: string;
@@ -57,7 +56,7 @@ class PerformanceService {
       lcp: 0,
       fid: 0,
       cls: 0,
-      interactionDelay: 0, // Add missing property
+      interactionDelay: 0,
       score: 100,
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
@@ -118,6 +117,7 @@ class PerformanceService {
       lcp: 0,
       fid: 0,
       cls: 0,
+      interactionDelay: 0,
       score: this.calculatePerformanceScore(entry),
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
@@ -198,7 +198,6 @@ class PerformanceService {
     }
   }
 
-  // Public API methods
   public getMetrics(): PerformanceMetrics {
     return this.currentMetrics;
   }

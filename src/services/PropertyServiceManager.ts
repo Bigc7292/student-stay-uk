@@ -1,11 +1,8 @@
-import { SpareRoomService, spareRoomService } from './spareRoomService';
-import { RightmoveService, rightmoveService } from './rightmoveService';
-import { ZooplaService, zooplaService } from './zooplaService';
-import { FacebookMarketplaceService, facebookMarketplaceService } from './facebookMarketplaceService';
-import { GumtreeService, gumtreeService } from './gumtreeService';
-import { OpenRentService, openRentService } from './openRentService';
-import { IdealFlatmateService, idealFlatmateService } from './idealFlatmateService';
-import { Property } from '@/types/property';
+
+import { spareRoomService } from './spareRoomService';
+import { rightmoveService } from './rightmoveService';
+import { gumtreeService } from './gumtreeService';
+import { openRentService } from './openRentService';
 
 export interface SearchParams {
   location: string;
@@ -16,6 +13,20 @@ export interface SearchParams {
   billsIncluded: boolean;
   availableFrom: string;
   radius: number;
+}
+
+// Define a simple Property type here since the external one doesn't exist
+export interface Property {
+  id: string | number;
+  title: string;
+  price: number;
+  location: string;
+  features: string[];
+  amenities: string[];
+  images: string[];
+  available: boolean;
+  qualityScore: number;
+  studentSuitability: number;
 }
 
 interface PropertyService {
@@ -30,11 +41,8 @@ export class PropertyServiceManager {
     this.services = [
       spareRoomService,
       rightmoveService,
-      zooplaService,
-      facebookMarketplaceService,
       gumtreeService,
-      openRentService,
-      idealFlatmateService
+      openRentService
     ];
   }
 
@@ -58,7 +66,25 @@ export class PropertyServiceManager {
     return results;
   }
 
+  public async searchProperties(params: any): Promise<{ properties: Property[]; summary: any }> {
+    const properties = await this.searchAllServices(params);
+    return {
+      properties,
+      summary: {
+        total: properties.length,
+        sourceBreakdown: {
+          spareroom: properties.filter(p => p.id.toString().includes('spare')).length,
+          rightmove: properties.filter(p => p.id.toString().includes('right')).length,
+          gumtree: properties.filter(p => p.id.toString().includes('gum')).length,
+          openrent: properties.filter(p => p.id.toString().includes('open')).length
+        }
+      }
+    };
+  }
+
   getAvailableServices() {
     return this.services.map(service => service.getServiceInfo());
   }
 }
+
+export const propertyServiceManager = new PropertyServiceManager();
