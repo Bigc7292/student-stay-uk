@@ -1,9 +1,14 @@
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, MapPin, Settings } from 'lucide-react';
 
 const InteractiveMaps = () => {
+  const handleNavigateToTab = (tab: string) => {
+    window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: tab }));
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -59,9 +64,7 @@ const InteractiveMaps = () => {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: 'routes' }));
-                  }}
+                  onClick={() => handleNavigateToTab('routes')}
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   Use Route Planner Tool
@@ -69,9 +72,7 @@ const InteractiveMaps = () => {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: 'search' }));
-                  }}
+                  onClick={() => handleNavigateToTab('search')}
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   Search for Properties

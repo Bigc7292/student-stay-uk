@@ -1,21 +1,25 @@
+
 // Test setup file
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+  takeRecords: vi.fn().mockReturnValue([])
+})) as any;
 
 // Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn()
+})) as any;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -24,31 +28,26 @@ Object.defineProperty(window, 'matchMedia', {
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
 });
 
-// Mock localStorage
-const localStorageMock = {
+// Mock localStorage with proper Storage interface
+const createStorageMock = () => ({
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-};
-global.localStorage = localStorageMock;
+  length: 0,
+  key: vi.fn()
+});
 
-// Mock sessionStorage
-const sessionStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-global.sessionStorage = sessionStorageMock;
+global.localStorage = createStorageMock() as any;
+global.sessionStorage = createStorageMock() as any;
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -95,54 +94,64 @@ global.google = {
     },
     LatLng: vi.fn().mockImplementation((lat, lng) => ({ lat: () => lat, lng: () => lng })),
   },
-};
-
-// Mock performance API
-global.performance = {
-  ...global.performance,
-  mark: vi.fn(),
-  measure: vi.fn(),
-  getEntriesByName: vi.fn().mockReturnValue([]),
-  getEntriesByType: vi.fn().mockReturnValue([]),
-  now: vi.fn().mockReturnValue(Date.now()),
-};
-
-// Mock PerformanceObserver
-global.PerformanceObserver = class PerformanceObserver {
-  constructor() {}
-  observe() {}
-  disconnect() {}
-};
-
-// Mock Notification API
-global.Notification = {
-  permission: 'default',
-  requestPermission: vi.fn().mockResolvedValue('granted'),
 } as any;
 
-// Mock Service Worker
-global.navigator = {
-  ...global.navigator,
-  serviceWorker: {
+// Mock PerformanceObserver
+global.PerformanceObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  disconnect: vi.fn()
+})) as any;
+
+// Add supportedEntryTypes to PerformanceObserver
+Object.defineProperty(global.PerformanceObserver, 'supportedEntryTypes', {
+  value: ['navigation', 'resource', 'measure', 'mark'],
+  writable: false
+});
+
+// Mock Notification API
+global.Notification = vi.fn().mockImplementation(() => ({
+  close: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+})) as any;
+
+Object.defineProperty(Notification, 'permission', {
+  value: 'granted',
+  writable: true
+});
+
+// Mock navigator.serviceWorker
+Object.defineProperty(navigator, 'serviceWorker', {
+  value: {
     register: vi.fn().mockResolvedValue({
       installing: null,
       waiting: null,
       active: null,
       addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      scope: '',
+      unregister: vi.fn(),
       update: vi.fn(),
-    }),
+      pushManager: { subscribe: vi.fn() },
+      sync: { register: vi.fn() },
+      showNotification: vi.fn()
+    } as any),
     ready: Promise.resolve({
-      showNotification: vi.fn(),
-      sync: {
-        register: vi.fn(),
-      },
-      pushManager: {
-        subscribe: vi.fn(),
-      },
-    }),
+      installing: null,
+      waiting: null,
+      active: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      scope: '',
+      unregister: vi.fn(),
+      update: vi.fn(),
+      pushManager: { subscribe: vi.fn() },
+      sync: { register: vi.fn() },
+      showNotification: vi.fn()
+    } as any),
   },
-  onLine: true,
-};
+  writable: true,
+});
 
 // Mock IndexedDB
 const mockIDBRequest = {
@@ -152,28 +161,12 @@ const mockIDBRequest = {
   onerror: null,
 };
 
-const mockIDBDatabase = {
-  transaction: vi.fn().mockReturnValue({
-    objectStore: vi.fn().mockReturnValue({
-      get: vi.fn().mockReturnValue(mockIDBRequest),
-      put: vi.fn().mockReturnValue(mockIDBRequest),
-      delete: vi.fn().mockReturnValue(mockIDBRequest),
-    }),
-  }),
-  createObjectStore: vi.fn(),
-  objectStoreNames: {
-    contains: vi.fn().mockReturnValue(false),
-  },
-};
-
 global.indexedDB = {
-  open: vi.fn().mockReturnValue({
-    ...mockIDBRequest,
-    result: mockIDBDatabase,
-    onupgradeneeded: null,
-  }),
+  open: vi.fn().mockReturnValue(mockIDBRequest),
   deleteDatabase: vi.fn(),
-};
+  databases: vi.fn(),
+  cmp: vi.fn()
+} as any;
 
 // Mock crypto for UUID generation
 global.crypto = {
@@ -185,77 +178,13 @@ global.crypto = {
     }
     return arr;
   }),
-};
+} as any;
 
 // Mock URL.createObjectURL
 global.URL.createObjectURL = vi.fn().mockReturnValue('mock-object-url');
 global.URL.revokeObjectURL = vi.fn();
 
-// Mock canvas for image processing
-HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
-  fillRect: vi.fn(),
-  clearRect: vi.fn(),
-  getImageData: vi.fn().mockReturnValue({
-    data: new Uint8ClampedArray(4),
-  }),
-  putImageData: vi.fn(),
-  createImageData: vi.fn().mockReturnValue({}),
-  setTransform: vi.fn(),
-  drawImage: vi.fn(),
-  save: vi.fn(),
-  fillText: vi.fn(),
-  restore: vi.fn(),
-  beginPath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  closePath: vi.fn(),
-  stroke: vi.fn(),
-  translate: vi.fn(),
-  scale: vi.fn(),
-  rotate: vi.fn(),
-  arc: vi.fn(),
-  fill: vi.fn(),
-  measureText: vi.fn().mockReturnValue({ width: 0 }),
-  transform: vi.fn(),
-  rect: vi.fn(),
-  clip: vi.fn(),
-});
-
-// Mock HTMLMediaElement
-Object.defineProperty(HTMLMediaElement.prototype, 'muted', {
-  writable: true,
-  value: false,
-});
-
-Object.defineProperty(HTMLMediaElement.prototype, 'play', {
-  writable: true,
-  value: vi.fn().mockResolvedValue(undefined),
-});
-
-Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
-  writable: true,
-  value: vi.fn(),
-});
-
-// Mock scrollIntoView
-Element.prototype.scrollIntoView = vi.fn();
-
-// Mock getBoundingClientRect
-Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
-  width: 100,
-  height: 100,
-  top: 0,
-  left: 0,
-  bottom: 100,
-  right: 100,
-  x: 0,
-  y: 0,
-  toJSON: vi.fn(),
-});
-
 // Clean up after each test
 afterEach(() => {
   vi.clearAllMocks();
-  localStorageMock.clear();
-  sessionStorageMock.clear();
 });
