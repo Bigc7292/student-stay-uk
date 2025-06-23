@@ -15,6 +15,14 @@ export interface NotificationPayload {
   requireInteraction?: boolean;
 }
 
+interface NotificationStatus {
+  supported: boolean;
+  enabled: boolean;
+  permission: NotificationPermission;
+  subscribed: boolean;
+  configured: boolean;
+}
+
 class NotificationService {
   private vapidPublicKey: string | null = null;
   private registration: ServiceWorkerRegistration | null = null;
@@ -34,6 +42,63 @@ class NotificationService {
       } catch (error) {
         console.error('❌ Service Worker registration failed:', error);
       }
+    }
+  }
+
+  // Get current notification status
+  getStatus(): NotificationStatus {
+    return {
+      supported: this.isSupported(),
+      enabled: this.isPermissionGranted(),
+      permission: Notification.permission,
+      subscribed: !!this.subscription,
+      configured: !!this.vapidPublicKey
+    };
+  }
+
+  // Subscribe to push notifications
+  async subscribe(): Promise<PushSubscription | null> {
+    if (!this.registration || !this.vapidPublicKey) {
+      console.warn('Service Worker not registered or VAPID key missing');
+      return null;
+    }
+
+    try {
+      const permission = await this.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission denied');
+      }
+
+      const subscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+      });
+
+      this.subscription = subscription;
+      localStorage.setItem('push_subscription', JSON.stringify(subscription));
+      console.log('✅ Push subscription successful');
+      return subscription;
+    } catch (error) {
+      console.error('❌ Push subscription failed:', error);
+      return null;
+    }
+  }
+
+  // Unsubscribe from push notifications
+  async unsubscribe(): Promise<boolean> {
+    if (!this.subscription) {
+      return true;
+    }
+
+    try {
+      await this.subscription.unsubscribe();
+      this.subscription = null;
+      localStorage.removeItem('push_subscription');
+      console.log('✅ Push unsubscription successful');
+      return true;
+    } catch (error) {
+      console.error('❌ Push unsubscription failed:', error);
+      return false;
     }
   }
 
@@ -59,28 +124,6 @@ class NotificationService {
 
   isPermissionGranted(): boolean {
     return Notification.permission === 'granted';
-  }
-
-  // Subscribe to push notifications
-  async subscribeToPush(): Promise<PushSubscription | null> {
-    if (!this.registration || !this.vapidPublicKey) {
-      console.warn('Service Worker not registered or VAPID key missing');
-      return null;
-    }
-
-    try {
-      const subscription = await this.registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
-      });
-
-      this.subscription = subscription;
-      console.log('✅ Push subscription successful');
-      return subscription;
-    } catch (error) {
-      console.error('❌ Push subscription failed:', error);
-      return null;
-    }
   }
 
   // Convert VAPID key
@@ -117,11 +160,6 @@ class NotificationService {
       data: payload.data,
       requireInteraction: payload.requireInteraction || false
     };
-
-    // Add actions if supported
-    if (payload.actions && 'actions' in Notification.prototype) {
-      options.actions = payload.actions;
-    }
 
     if (this.registration) {
       await this.registration.showNotification(payload.title, options);
@@ -166,17 +204,13 @@ class NotificationService {
       data: {
         type: 'new-property',
         property: property
-      },
-      actions: [
-        { action: 'view', title: 'View Property' },
-        { action: 'save', title: 'Save for Later' }
-      ]
+      }
     };
 
     await this.showNotification(payload);
   }
 
-  async notifyPriceChange(property: { title: string; oldPrice: number; newPrice: number }): Promise<void> {
+  async notifyPriceAlert(property: { title: string; oldPrice: number; newPrice: number }): Promise<void> {
     const payload: NotificationPayload = {
       title: '💰 Price Alert!',
       body: `${property.title} - Price changed from £${property.oldPrice} to £${property.newPrice}`,
@@ -208,6 +242,11 @@ class NotificationService {
     await this.showNotification(payload);
   }
 
+  // Alias for backward compatibility
+  async notifyApplicationUpdate(status: string, property: string): Promise<void> {
+    return this.notifyApplicationStatus(status, property);
+  }
+
   async notifyMaintenanceReminder(task: string, dueDate: string): Promise<void> {
     const payload: NotificationPayload = {
       title: '🔧 Maintenance Reminder',
@@ -222,42 +261,6 @@ class NotificationService {
     };
 
     await this.showNotification(payload);
-  }
-
-  // Notification settings
-  async getNotificationSettings(): Promise<{
-    enabled: boolean;
-    newProperties: boolean;
-    priceAlerts: boolean;
-    applications: boolean;
-    maintenance: boolean;
-  }> {
-    const settings = localStorage.getItem('notification-settings');
-    if (settings) {
-      return JSON.parse(settings);
-    }
-
-    return {
-      enabled: false,
-      newProperties: true,
-      priceAlerts: true,
-      applications: true,
-      maintenance: true
-    };
-  }
-
-  async updateNotificationSettings(settings: {
-    enabled: boolean;
-    newProperties: boolean;
-    priceAlerts: boolean;
-    applications: boolean;
-    maintenance: boolean;
-  }): Promise<void> {
-    localStorage.setItem('notification-settings', JSON.stringify(settings));
-    
-    if (settings.enabled && !this.subscription) {
-      await this.subscribeToPush();
-    }
   }
 
   // Clear all notifications

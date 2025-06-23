@@ -1,4 +1,3 @@
-
 // Google Maps Service with free tier support
 export interface MapLocation {
   lat: number;
@@ -22,7 +21,7 @@ export interface Coordinates {
 
 class MapsService {
   private apiKey: string = 's4fm_2SM8Kly196qcszrM-FX9IM=';
-  private isLoaded: boolean = false;
+  private isMapLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
 
   constructor() {
@@ -34,7 +33,7 @@ class MapsService {
   setApiKey(key: string) {
     this.apiKey = key;
     localStorage.setItem('google_maps_api_key', key);
-    this.isLoaded = false; // Force reload with new key
+    this.isMapLoaded = false; // Force reload with new key
   }
 
   // Check if API is available
@@ -44,7 +43,7 @@ class MapsService {
 
   // Check if Maps API is loaded
   isLoaded(): boolean {
-    return this.isLoaded && !!window.google;
+    return this.isMapLoaded && !!window.google;
   }
 
   // Get setup instructions for users
@@ -62,7 +61,7 @@ Free tier includes 28,000 map loads per month!`;
 
   // Load Google Maps API
   async loadGoogleMaps(): Promise<void> {
-    if (this.isLoaded && window.google) {
+    if (this.isMapLoaded && window.google) {
       return Promise.resolve();
     }
 
@@ -76,7 +75,7 @@ Free tier includes 28,000 map loads per month!`;
 
     this.loadPromise = new Promise((resolve, reject) => {
       if (window.google) {
-        this.isLoaded = true;
+        this.isMapLoaded = true;
         resolve();
         return;
       }
@@ -87,7 +86,7 @@ Free tier includes 28,000 map loads per month!`;
       script.defer = true;
 
       (window as any).initGoogleMaps = () => {
-        this.isLoaded = true;
+        this.isMapLoaded = true;
         resolve();
       };
 
@@ -284,7 +283,7 @@ Free tier includes 28,000 map loads per month!`;
     type: string,
     radius: number = 1000
   ): Promise<Array<{ name: string; coordinates: Coordinates; placeId: string }>> {
-    if (!this.isLoaded || !window.google) {
+    if (!this.isLoaded() || !window.google) {
       return [];
     }
 

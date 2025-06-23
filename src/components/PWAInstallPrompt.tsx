@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Download, X, Smartphone, Monitor, Wifi, Bell, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,23 +13,21 @@ const PWAInstallPrompt: React.FC = () => {
 
   useEffect(() => {
     // Listen for PWA events
-    const handleInstallable = () => {
-      setShowPrompt(true);
+    const handleInstall = (isInstalled: boolean) => {
+      if (isInstalled) {
+        setShowPrompt(false);
+      } else {
+        setShowPrompt(true);
+      }
       setCapabilities(pwaService.getCapabilities());
     };
 
-    const handleInstalled = () => {
-      setShowPrompt(false);
+    const handleUpdate = () => {
       setCapabilities(pwaService.getCapabilities());
     };
 
-    const handleOnlineChange = () => {
-      setCapabilities(pwaService.getCapabilities());
-    };
-
-    pwaService.on('installable', handleInstallable);
-    pwaService.on('installed', handleInstalled);
-    pwaService.on('online', handleOnlineChange);
+    pwaService.on('install', handleInstall);
+    pwaService.on('update', handleUpdate);
 
     // Check initial state
     if (capabilities.isInstallable && !capabilities.isInstalled) {
@@ -36,9 +35,8 @@ const PWAInstallPrompt: React.FC = () => {
     }
 
     return () => {
-      pwaService.off('installable', handleInstallable);
-      pwaService.off('installed', handleInstalled);
-      pwaService.off('online', handleOnlineChange);
+      pwaService.off('install');
+      pwaService.off('update');
     };
   }, [capabilities.isInstallable, capabilities.isInstalled]);
 

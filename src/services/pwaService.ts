@@ -1,3 +1,4 @@
+
 // PWA Service
 // Handles PWA installation, service worker updates, and push notifications
 
@@ -47,18 +48,10 @@ class PWAService {
       this.updateCapabilities();
     });
 
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data === 'content-updated') {
-        if (this.updateCallback) {
-          this.updateCallback();
-        }
-      }
-    });
-
     this.updateCapabilities();
   }
 
-  on(event: 'install' | 'update' | 'pushSubscription', callback: (data: any) => void): void {
+  on(event: 'install' | 'update' | 'pushSubscription', callback: (data?: any) => void): void {
     if (event === 'install') {
       this.installCallback = callback;
     } else if (event === 'update') {
