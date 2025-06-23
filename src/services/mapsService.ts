@@ -21,15 +21,13 @@ export interface Coordinates {
 }
 
 class MapsService {
-  private apiKey: string | null = null;
+  private apiKey: string = 's4fm_2SM8Kly196qcszrM-FX9IM=';
   private isLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
 
   constructor() {
-    // Try to get API key from environment or localStorage
-    this.apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-                  localStorage.getItem('google_maps_api_key') ||
-                  null;
+    // Set the API key provided by the user
+    this.apiKey = 's4fm_2SM8Kly196qcszrM-FX9IM=';
   }
 
   // Set API key (users can add their own free Google Maps API key)
@@ -42,6 +40,11 @@ class MapsService {
   // Check if API is available
   isAPIAvailable(): boolean {
     return !!this.apiKey;
+  }
+
+  // Check if Maps API is loaded
+  isLoaded(): boolean {
+    return this.isLoaded && !!window.google;
   }
 
   // Get setup instructions for users
