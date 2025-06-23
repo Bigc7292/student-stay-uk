@@ -14,6 +14,8 @@ export interface PerformanceMetrics {
   pageLoadTime: number;
   fcp: number;
   lcp: number;
+  fid: number;
+  cls: number;
   score: number;
   timestamp: number;
   userAgent: string;
@@ -32,9 +34,33 @@ class PerformanceService {
   private metrics: PerformanceMetrics[] = [];
   private observer: PerformanceObserver | null = null;
   private isMonitoring: boolean = false;
+  private currentMetrics: PerformanceMetrics;
 
   constructor() {
+    this.currentMetrics = this.getDefaultMetrics();
     this.initializePerformanceMonitoring();
+  }
+
+  private getDefaultMetrics(): PerformanceMetrics {
+    return {
+      memoryUsage: 0,
+      jsSize: 0,
+      cssSize: 0,
+      imageSize: 0,
+      totalSize: 0,
+      ttfb: 0,
+      domContentLoaded: 0,
+      loadComplete: 0,
+      pageLoadTime: 0,
+      fcp: 0,
+      lcp: 0,
+      fid: 0,
+      cls: 0,
+      score: 100,
+      timestamp: Date.now(),
+      userAgent: navigator.userAgent,
+      connection: this.getConnectionType()
+    };
   }
 
   private initializePerformanceMonitoring(): void {
@@ -88,30 +114,27 @@ class PerformanceService {
       pageLoadTime: entry.loadEventEnd - entry.fetchStart,
       fcp: 0,
       lcp: 0,
+      fid: 0,
+      cls: 0,
       score: this.calculatePerformanceScore(entry),
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
       connection: this.getConnectionType()
     };
 
+    this.currentMetrics = metrics;
     this.metrics.push(metrics);
     this.logMetrics(metrics);
   }
 
   private handlePaintTiming(entry: PerformanceEntry): void {
     if (entry.name === 'first-contentful-paint') {
-      const latestMetrics = this.metrics[this.metrics.length - 1];
-      if (latestMetrics) {
-        latestMetrics.fcp = entry.startTime;
-      }
+      this.currentMetrics.fcp = entry.startTime;
     }
   }
 
   private handleLCPTiming(entry: PerformanceEntry): void {
-    const latestMetrics = this.metrics[this.metrics.length - 1];
-    if (latestMetrics) {
-      latestMetrics.lcp = entry.startTime;
-    }
+    this.currentMetrics.lcp = entry.startTime;
   }
 
   private calculateResourceSizes(): number {
@@ -173,16 +196,119 @@ class PerformanceService {
     }
   }
 
-  public getMetrics(): PerformanceMetrics[] {
-    return [...this.metrics];
+  // Public API methods
+  public getMetrics(): PerformanceMetrics {
+    return this.currentMetrics;
   }
 
   public getLatestMetrics(): PerformanceMetrics | null {
     return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] : null;
   }
 
+  public getPerformanceScore(): number {
+    const metrics = this.currentMetrics;
+    let score = 100;
+
+    // Apply penalties based on metric values
+    if (metrics.fcp > 2500) score -= 10;
+    if (metrics.lcp > 2500) score -= 15;
+    if (metrics.fid > 100) score -= 10;
+    if (metrics.cls > 0.1) score -= 10;
+    if (metrics.jsSize > 1000000) score -= 10;
+    if (metrics.pageLoadTime > 3000) score -= 15;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  public getRecommendations(): string[] {
+    const metrics = this.currentMetrics;
+    const recommendations: string[] = [];
+
+    if (metrics.fcp > 2500) {
+      recommendations.push('Optimize First Contentful Paint by reducing render-blocking resources');
+    }
+
+    if (metrics.lcp > 2500) {
+      recommendations.push('Improve Largest Contentful Paint by optimizing images and critical resources');
+    }
+
+    if (metrics.fid > 100) {
+      recommendations.push('Reduce First Input Delay by optimizing JavaScript execution');
+    }
+
+    if (metrics.cls > 0.1) {
+      recommendations.push('Fix Cumulative Layout Shift by stabilizing layout elements');
+    }
+
+    if (metrics.jsSize > 1000000) {
+      recommendations.push('Reduce JavaScript bundle size through code splitting and tree shaking');
+    }
+
+    if (metrics.pageLoadTime > 3000) {
+      recommendations.push('Improve page load time by optimizing critical resources');
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push('Great job! Your app performance is excellent.');
+    }
+
+    return recommendations;
+  }
+
+  public getConnectionInfo(): { effectiveType: string; downlink: number; rtt: number; saveData: boolean } | null {
+    try {
+      const connection = (navigator as any).connection;
+      if (connection) {
+        return {
+          effectiveType: connection.effectiveType || '4g',
+          downlink: connection.downlink || 10,
+          rtt: connection.rtt || 50,
+          saveData: connection.saveData || false
+        };
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  public isPWA(): boolean {
+    try {
+      return window.matchMedia('(display-mode: standalone)').matches;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  public markEvent(name: string): void {
+    try {
+      performance.mark(name);
+    } catch (error) {
+      console.warn(`Failed to mark event: ${name}`, error);
+    }
+  }
+
+  public measureBetween(measureName: string, startMark: string, endMark: string): number {
+    try {
+      performance.measure(measureName, startMark, endMark);
+      const measure = performance.getEntriesByName(measureName, 'measure')[0];
+      return measure ? measure.duration : 0;
+    } catch (error) {
+      console.warn(`Failed to measure between ${startMark} and ${endMark}:`, error);
+      return 0;
+    }
+  }
+
+  public disconnect(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.isMonitoring = false;
+    }
+  }
+
   public clearMetrics(): void {
     this.metrics = [];
+    this.currentMetrics = this.getDefaultMetrics();
   }
 
   public startMonitoring(): void {
@@ -192,10 +318,7 @@ class PerformanceService {
   }
 
   public stopMonitoring(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.isMonitoring = false;
-    }
+    this.disconnect();
   }
 
   public measureCustomMetric(name: string, fn: () => void): number {
@@ -209,27 +332,33 @@ class PerformanceService {
   }
 
   public markCustomEvent(name: string): void {
+    this.markEvent(name);
+  }
+
+  public getResourceTimings(): PerformanceResourceTiming[] {
     try {
-      performance.mark(name);
+      return performance.getEntriesByType('resource') as PerformanceResourceTiming[];
     } catch (error) {
-      console.warn(`Failed to mark custom event: ${name}`, error);
+      return [];
     }
   }
 
-  // Convert PerformanceEntryList to array
-  private convertEntryList(entryList: PerformanceEntryList): PerformanceEntry[] {
-    const entries: PerformanceEntry[] = [];
-    for (let i = 0; i < entryList.length; i++) {
-      const entry = entryList[i];
-      entries.push({
-        name: entry.name,
-        startTime: entry.startTime,
-        duration: entry.duration,
-        entryType: entry.entryType,
-        type: (entry as any).type || entry.entryType
-      });
+  public getNavigationTiming(): PerformanceNavigationTiming | null {
+    try {
+      const entries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+      return entries.length > 0 ? entries[0] : null;
+    } catch (error) {
+      return null;
     }
-    return entries;
+  }
+
+  public getPerformanceHistory(): PerformanceMetrics[] {
+    try {
+      const stored = localStorage.getItem('performance-metrics');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      return [];
+    }
   }
 }
 

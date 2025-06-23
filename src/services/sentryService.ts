@@ -59,6 +59,15 @@ class SentryService {
     }
   }
 
+  public getStatus(): { initialized: boolean; enabled: boolean; dsn: string; environment: string } {
+    return {
+      initialized: this.isInitialized,
+      enabled: !!this.config.dsn,
+      dsn: this.config.dsn ? `${this.config.dsn.substring(0, 20)}...` : 'Not configured',
+      environment: this.config.environment
+    };
+  }
+
   public captureException(error: Error, context?: any): void {
     if (!this.isInitialized) return;
 
@@ -74,30 +83,34 @@ class SentryService {
     }
   }
 
-  public captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
+  public captureError(error: Error, context?: any): void {
+    this.captureException(error, context);
+  }
+
+  public captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context?: any): void {
     if (!this.isInitialized) return;
 
     try {
-      Sentry.captureMessage(message, level);
+      Sentry.withScope((scope) => {
+        if (context) {
+          scope.setContext('message_context', context);
+        }
+        Sentry.captureMessage(message, level);
+      });
     } catch (error) {
       console.warn('Failed to capture message:', error);
     }
   }
 
-  public addBreadcrumb(breadcrumb: {
-    message: string;
-    category?: string;
-    level?: string;
-    data?: any;
-  }): void {
+  public addBreadcrumb(message: string, category?: string, level?: string, data?: any): void {
     if (!this.isInitialized) return;
 
     try {
       Sentry.addBreadcrumb({
-        message: breadcrumb.message,
-        category: breadcrumb.category || 'default',
-        level: breadcrumb.level as any || 'info',
-        data: breadcrumb.data
+        message: message,
+        category: category || 'default',
+        level: level as any || 'info',
+        data: data
       });
     } catch (error) {
       console.warn('Failed to add breadcrumb:', error);
@@ -148,6 +161,36 @@ class SentryService {
       console.warn('Failed to start span:', error);
       return null;
     }
+  }
+
+  public testSentry(): void {
+    if (!this.isInitialized) {
+      console.log('🐛 Sentry test skipped - not initialized');
+      return;
+    }
+
+    console.log('🐛 Testing Sentry integration...');
+    
+    // Test breadcrumb
+    this.addBreadcrumb('Sentry test initiated', 'test', 'info');
+    
+    // Test message
+    this.captureMessage('Sentry test message', 'info', { test: true });
+    
+    console.log('🐛 Sentry test completed - check your dashboard');
+  }
+
+  public getSetupInstructions(): string {
+    return `Sentry Configuration:
+- DSN: ${this.config.dsn || 'Not configured'}
+- Environment: ${this.config.environment}
+- Initialized: ${this.isInitialized}
+- Debug Mode: ${this.config.debug}
+
+To configure Sentry:
+1. Set VITE_SENTRY_DSN in your .env file
+2. Restart the application
+3. Sentry will automatically initialize`;
   }
 
   public isEnabled(): boolean {
