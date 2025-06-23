@@ -1,10 +1,10 @@
+
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Initialize Sentry error tracking
-import SentryErrorBoundary from './components/SentryErrorBoundary';
-import './services/sentryService';
+// Use the existing ErrorBoundary instead of SentryErrorBoundary to avoid CommonJS issues
+import ErrorBoundary from './components/ErrorBoundary';
 
 const container = document.getElementById("root");
 if (!container) {
@@ -13,7 +13,7 @@ if (!container) {
 
 const root = createRoot(container);
 root.render(
-  <SentryErrorBoundary>
+  <ErrorBoundary>
     <App />
-  </SentryErrorBoundary>
+  </ErrorBoundary>
 );

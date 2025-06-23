@@ -1,48 +1,49 @@
 // Google Maps Service with free tier support
-export interface Coordinates {
-  lat: number;
-  lng: number;
-}
-
 export interface MapLocation {
   lat: number;
   lng: number;
   name: string;
   type: 'university' | 'accommodation' | 'amenity';
-  details?: Record<string, unknown>;
+  details?: any;
 }
 
 export interface RouteInfo {
   distance: string;
   duration: string;
-  steps: google.maps.DirectionsStep[];
+  steps: any[];
+}
+
+// Define Coordinates interface
+export interface Coordinates {
+  lat: number;
+  lng: number;
 }
 
 class MapsService {
-  private apiKey: string | null = null;
-  private isLoaded: boolean = false;
+  private apiKey: string = 's4fm_2SM8Kly196qcszrM-FX9IM=';
+  private isMapLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
 
   constructor() {
-    // Try to get API key from environment or localStorage
-    this.apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-                  localStorage.getItem('google_maps_api_key') ||
-                  's4fm_2SM8Kly196qcszrM-FX9IM='; // Fallback to known working key
-
-    console.log('🗺️ MapsService initialized with API key:', this.apiKey ? `${this.apiKey.substring(0, 20)}...` : 'None');
+    // Set the API key provided by the user
+    this.apiKey = 's4fm_2SM8Kly196qcszrM-FX9IM=';
   }
 
   // Set API key (users can add their own free Google Maps API key)
   setApiKey(key: string) {
     this.apiKey = key;
     localStorage.setItem('google_maps_api_key', key);
-    this.isLoaded = false; // Force reload with new key
+    this.isMapLoaded = false; // Force reload with new key
   }
 
   // Check if API is available
   isAPIAvailable(): boolean {
-    console.log('🗺️ Checking API availability. API key:', this.apiKey ? `${this.apiKey.substring(0, 20)}...` : 'None');
     return !!this.apiKey;
+  }
+
+  // Check if Maps API is loaded
+  isLoaded(): boolean {
+    return this.isMapLoaded && !!window.google;
   }
 
   // Get setup instructions for users
@@ -60,7 +61,7 @@ Free tier includes 28,000 map loads per month!`;
 
   // Load Google Maps API
   async loadGoogleMaps(): Promise<void> {
-    if (this.isLoaded && window.google) {
+    if (this.isMapLoaded && window.google) {
       return Promise.resolve();
     }
 
@@ -74,19 +75,18 @@ Free tier includes 28,000 map loads per month!`;
 
     this.loadPromise = new Promise((resolve, reject) => {
       if (window.google) {
-        this.isLoaded = true;
+        this.isMapLoaded = true;
         resolve();
         return;
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places,geometry&loading=async&callback=initGoogleMaps`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places,geometry&callback=initGoogleMaps`;
       script.async = true;
       script.defer = true;
 
-      (window as unknown as { initGoogleMaps: () => void }).initGoogleMaps = () => {
-        console.log('🗺️ Google Maps API callback triggered');
-        this.isLoaded = true;
+      (window as any).initGoogleMaps = () => {
+        this.isMapLoaded = true;
         resolve();
       };
 
@@ -101,18 +101,10 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Create map instance
-  createMap(element: HTMLElement, options: google.maps.MapOptions = {}): google.maps.Map {
+  createMap(element: HTMLElement, options: any = {}): any {
     if (!window.google) {
-      console.error('🗺️ Google Maps not loaded - window.google is undefined');
       throw new Error('Google Maps not loaded');
     }
-
-    if (!window.google.maps) {
-      console.error('🗺️ Google Maps API not available - window.google.maps is undefined');
-      throw new Error('Google Maps API not available');
-    }
-
-    console.log('🗺️ Creating Google Maps instance...');
 
     const defaultOptions = {
       center: { lat: 54.7023, lng: -3.2765 }, // UK center
@@ -124,21 +116,14 @@ Free tier includes 28,000 map loads per month!`;
       ...options
     };
 
-    try {
-      const map = new window.google.maps.Map(element, defaultOptions);
-      console.log('🗺️ Google Maps instance created successfully');
-      return map;
-    } catch (error) {
-      console.error('🗺️ Failed to create Google Maps instance:', error);
-      throw error;
-    }
+    return new window.google.maps.Map(element, defaultOptions);
   }
 
   // Create marker
-  createMarker(map: google.maps.Map, location: MapLocation, options: google.maps.MarkerOptions = {}): google.maps.Marker {
+  createMarker(map: any, location: MapLocation, options: any = {}): any {
     if (!window.google) return null;
 
-    const defaultOptions: google.maps.MarkerOptions = {
+    const defaultOptions = {
       position: { lat: location.lat, lng: location.lng },
       map: map,
       title: location.name,
@@ -150,22 +135,23 @@ Free tier includes 28,000 map loads per month!`;
 
   // Search nearby places
   async searchNearbyPlaces(
-    map: google.maps.Map,
-    center: Coordinates,
-    type: string,
+    map: any, 
+    center: { lat: number; lng: number }, 
+    type: string, 
     radius: number = 1000
-  ): Promise<google.maps.places.PlaceResult[]> {
+  ): Promise<any[]> {
     if (!window.google) return [];
 
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(map);
-      const request: google.maps.places.PlaceSearchRequest = {
+      
+      const request = {
         location: center,
         radius: radius,
-        // Google Maps types may not include all place types, so allow string
-        type: type as unknown as string
+        type: type
       };
-      service.nearbySearch(request, (results, status) => {
+
+      service.nearbySearch(request, (results: any[], status: any) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
           resolve(results);
         } else {
@@ -177,21 +163,23 @@ Free tier includes 28,000 map loads per month!`;
 
   // Calculate route
   async calculateRoute(
-    start: Coordinates,
-    end: Coordinates,
-    travelMode: google.maps.TravelMode = google.maps.TravelMode.WALKING
+    start: { lat: number; lng: number },
+    end: { lat: number; lng: number },
+    travelMode: string = 'WALKING'
   ): Promise<RouteInfo | null> {
     if (!window.google) return null;
 
     return new Promise((resolve) => {
       const directionsService = new window.google.maps.DirectionsService();
-      const request: google.maps.DirectionsRequest = {
+      
+      const request = {
         origin: start,
         destination: end,
-        travelMode: travelMode
+        travelMode: (window.google.maps.TravelMode as any)[travelMode]
       };
-      directionsService.route(request, (result, status) => {
-        if (status === 'OK' && result && result.routes.length > 0) {
+
+      directionsService.route(request, (result: any, status: any) => {
+        if (status === 'OK' && result.routes.length > 0) {
           const route = result.routes[0].legs[0];
           resolve({
             distance: route.distance.text,
@@ -206,16 +194,17 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Get place details
-  async getPlaceDetails(placeId: string): Promise<google.maps.places.PlaceResult | null> {
+  async getPlaceDetails(placeId: string): Promise<any> {
     if (!window.google) return null;
 
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(
         document.createElement('div')
       );
+
       service.getDetails(
         { placeId: placeId },
-        (place, status) => {
+        (place: any, status: any) => {
           if (status === window.google.maps.places.PlacesServiceStatus.OK) {
             resolve(place);
           } else {
@@ -227,13 +216,14 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Geocode address
-  async geocodeAddress(address: string): Promise<Coordinates | null> {
+  async geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
     if (!window.google) return null;
 
     return new Promise((resolve) => {
       const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: address }, (results, status) => {
-        if (status === 'OK' && results && results.length > 0) {
+      
+      geocoder.geocode({ address: address }, (results: any[], status: any) => {
+        if (status === 'OK' && results.length > 0) {
           const location = results[0].geometry.location;
           resolve({
             lat: location.lat(),
@@ -247,20 +237,23 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Create info window
-  createInfoWindow(content: string): google.maps.InfoWindow | null {
+  createInfoWindow(content: string): any {
     if (!window.google) return null;
+
     return new window.google.maps.InfoWindow({
       content: content
     });
   }
 
   // Create directions renderer
-  createDirectionsRenderer(map: google.maps.Map, options: google.maps.DirectionsRendererOptions = {}): google.maps.DirectionsRenderer | null {
+  createDirectionsRenderer(map: any, options: any = {}): any {
     if (!window.google) return null;
+
     const renderer = new window.google.maps.DirectionsRenderer({
       draggable: true,
       ...options
     });
+
     renderer.setMap(map);
     return renderer;
   }
@@ -269,15 +262,18 @@ Free tier includes 28,000 map loads per month!`;
   async calculateMultipleRoutes(
     origin: Coordinates,
     destinations: Array<{ name: string; coordinates: Coordinates; type: string }>,
-    travelMode: google.maps.TravelMode = google.maps.TravelMode.WALKING
-  ): Promise<Array<{ destination: { name: string; coordinates: Coordinates; type: string }; route: RouteInfo | null }>> {
-    const results: Array<{ destination: { name: string; coordinates: Coordinates; type: string }; route: RouteInfo | null }> = [];
+    travelMode: 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT' = 'WALKING'
+  ): Promise<Array<{ destination: any; route: RouteInfo | null }>> {
+    const results = [];
+
     for (const destination of destinations) {
       const route = await this.calculateRoute(origin, destination.coordinates, travelMode);
       results.push({ destination, route });
+
       // Add small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100));
     }
+
     return results;
   }
 
@@ -287,20 +283,22 @@ Free tier includes 28,000 map loads per month!`;
     type: string,
     radius: number = 1000
   ): Promise<Array<{ name: string; coordinates: Coordinates; placeId: string }>> {
-    if (!this.isLoaded || !window.google) {
+    if (!this.isLoaded() || !window.google) {
       return [];
     }
+
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(
         document.createElement('div')
       );
-      const request: google.maps.places.PlaceSearchRequest = {
+
+      const request = {
         location: new window.google.maps.LatLng(location.lat, location.lng),
         radius: radius,
-        // Google Maps types may not include all place types, so allow string
-        type: type as unknown as string
+        type: type
       };
-      service.nearbySearch(request, (results, status) => {
+
+      service.nearbySearch(request, (results: any[], status: any) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
           const places = results.slice(0, 5).map(place => ({
             name: place.name,
@@ -359,6 +357,7 @@ Free tier includes 28,000 map loads per month!`;
     placeTypes: string[]
   ): Promise<Record<string, Array<{ name: string; coordinates: Coordinates; distance?: string }>>> {
     const results: Record<string, Array<{ name: string; coordinates: Coordinates; distance?: string }>> = {};
+
     for (const placeType of placeTypes) {
       try {
         const places = await this.searchPlacesByType(userLocation, placeType, 2000);
@@ -368,6 +367,7 @@ Free tier includes 28,000 map loads per month!`;
         results[placeType] = [];
       }
     }
+
     return results;
   }
 }

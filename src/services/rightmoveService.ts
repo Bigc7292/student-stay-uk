@@ -41,6 +41,9 @@ interface RightmoveSearchFilters {
   radius?: number; // miles from location
 }
 
+// Import the Property interface from PropertyServiceManager
+import type { Property } from './PropertyServiceManager';
+
 class RightmoveService {
   private apifyToken: string;
   private actorId: string;
@@ -61,8 +64,8 @@ class RightmoveService {
     return this.enabled && !!this.apifyToken;
   }
 
-  // Search for properties using Apify scraper
-  async searchProperties(filters: RightmoveSearchFilters): Promise<RightmoveProperty[]> {
+  // Search for properties using Apify scraper - now returns standard Property[]
+  async searchProperties(filters: RightmoveSearchFilters): Promise<Property[]> {
     if (!this.isAvailable()) {
       console.log('🏠 Rightmove scraper not available, skipping search');
       return [];
@@ -103,15 +106,66 @@ class RightmoveService {
       console.log(`✅ Rightmove scraper completed: ${items.length} properties found`);
 
       // Transform scraped data to our standard format
-      const properties = this.transformScrapedData(items);
+      const rightmoveProperties = this.transformScrapedData(items);
+      const standardProperties = rightmoveProperties.map(prop => this.transformToStandardProperty(prop));
       
-      console.log(`🏠 Processed ${properties.length} Rightmove properties`);
-      return properties;
+      console.log(`🏠 Processed ${standardProperties.length} Rightmove properties`);
+      return standardProperties;
       
     } catch (error) {
       console.error('❌ Rightmove scraper error:', error);
       throw new Error(`Rightmove scraper failed: ${error.message}`);
     }
+  }
+
+  // Transform RightmoveProperty to standard Property interface
+  private transformToStandardProperty(rightmoveProp: RightmoveProperty): Property {
+    return {
+      id: rightmoveProp.id,
+      title: rightmoveProp.title,
+      price: rightmoveProp.price,
+      location: rightmoveProp.location,
+      features: rightmoveProp.features,
+      amenities: this.extractAmenities(rightmoveProp.description),
+      images: rightmoveProp.images,
+      available: rightmoveProp.available,
+      qualityScore: this.calculateQualityScore(rightmoveProp),
+      studentSuitability: this.calculateStudentSuitability(rightmoveProp)
+    };
+  }
+
+  private extractAmenities(description: string): string[] {
+    const amenities: string[] = [];
+    const lowerDesc = description.toLowerCase();
+    
+    if (lowerDesc.includes('wifi') || lowerDesc.includes('internet')) amenities.push('WiFi');
+    if (lowerDesc.includes('parking')) amenities.push('Parking');
+    if (lowerDesc.includes('garden')) amenities.push('Garden');
+    if (lowerDesc.includes('gym')) amenities.push('Gym');
+    if (lowerDesc.includes('washing')) amenities.push('Washing Machine');
+    if (lowerDesc.includes('dishwasher')) amenities.push('Dishwasher');
+    
+    return amenities;
+  }
+
+  private calculateQualityScore(property: RightmoveProperty): number {
+    let score = 70; // Base score for Rightmove (generally high quality)
+    
+    if (property.images.length > 3) score += 15;
+    if (property.description.length > 200) score += 10;
+    if (property.agent?.verified) score += 5;
+    
+    return Math.min(score, 100);
+  }
+
+  private calculateStudentSuitability(property: RightmoveProperty): number {
+    let score = 50; // Base score
+    
+    if (property.furnished) score += 20;
+    if (property.billsIncluded) score += 15;
+    if (property.price < 800) score += 15; // Affordable for students
+    
+    return Math.min(score, 100);
   }
 
   // Build Rightmove search URL for scraping
@@ -278,6 +332,14 @@ class RightmoveService {
       enabled: this.enabled,
       configured: !!this.apifyToken,
       scraper: 'Apify Rightmove Scraper (XoodS5Tyd3a9NLxlv)'
+    };
+  }
+
+  // Add the missing getServiceInfo method to match PropertyService interface
+  getServiceInfo() {
+    return {
+      name: 'Rightmove',
+      isConfigured: !!this.apifyToken
     };
   }
 

@@ -99,7 +99,7 @@ export class OptimizedErrorBoundary extends React.Component<ErrorBoundaryProps, 
           scope.setTag('errorBoundary', true);
           scope.setContext('errorInfo', errorInfo);
           scope.setLevel('error');
-          window.Sentry.captureException(error);
+          window.Sentry!.captureException(error);
         });
       }
 

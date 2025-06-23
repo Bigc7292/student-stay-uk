@@ -39,6 +39,9 @@ interface GumtreeSearchFilters {
   radius?: number;
 }
 
+// Import the Property interface from PropertyServiceManager
+import type { Property } from './PropertyServiceManager';
+
 class GumtreeService {
   private apifyToken: string;
   private actorId: string;
@@ -59,8 +62,8 @@ class GumtreeService {
     return this.enabled && !!this.apifyToken;
   }
 
-  // Search for properties using Apify scraper
-  async searchProperties(filters: GumtreeSearchFilters): Promise<GumtreeProperty[]> {
+  // Search for properties using Apify scraper - now returns standard Property[]
+  async searchProperties(filters: GumtreeSearchFilters): Promise<Property[]> {
     if (!this.isAvailable()) {
       console.log('🏠 Gumtree scraper not available, skipping search');
       return [];
@@ -101,15 +104,67 @@ class GumtreeService {
       console.log(`✅ Gumtree scraper completed: ${items.length} properties found`);
 
       // Transform scraped data to our standard format
-      const properties = this.transformScrapedData(items);
+      const gumtreeProperties = this.transformScrapedData(items);
+      const standardProperties = gumtreeProperties.map(prop => this.transformToStandardProperty(prop));
       
-      console.log(`🏠 Processed ${properties.length} Gumtree properties`);
-      return properties;
+      console.log(`🏠 Processed ${standardProperties.length} Gumtree properties`);
+      return standardProperties;
       
     } catch (error) {
       console.error('❌ Gumtree scraper error:', error);
       throw new Error(`Gumtree scraper failed: ${error.message}`);
     }
+  }
+
+  // Transform GumtreeProperty to standard Property interface
+  private transformToStandardProperty(gumtreeProp: GumtreeProperty): Property {
+    return {
+      id: gumtreeProp.id,
+      title: gumtreeProp.title,
+      price: gumtreeProp.price,
+      location: gumtreeProp.location,
+      features: gumtreeProp.features,
+      amenities: this.extractAmenities(gumtreeProp.description),
+      images: gumtreeProp.images,
+      available: gumtreeProp.available,
+      qualityScore: this.calculateQualityScore(gumtreeProp),
+      studentSuitability: this.calculateStudentSuitability(gumtreeProp)
+    };
+  }
+
+  private extractAmenities(description: string): string[] {
+    const amenities: string[] = [];
+    const lowerDesc = description.toLowerCase();
+    
+    if (lowerDesc.includes('wifi') || lowerDesc.includes('internet')) amenities.push('WiFi');
+    if (lowerDesc.includes('parking')) amenities.push('Parking');
+    if (lowerDesc.includes('garden')) amenities.push('Garden');
+    if (lowerDesc.includes('gym')) amenities.push('Gym');
+    if (lowerDesc.includes('washing')) amenities.push('Washing Machine');
+    if (lowerDesc.includes('dishwasher')) amenities.push('Dishwasher');
+    
+    return amenities;
+  }
+
+  private calculateQualityScore(property: GumtreeProperty): number {
+    let score = 40; // Base score for Gumtree (lower than agencies)
+    
+    if (property.images.length > 0) score += 20;
+    if (property.description.length > 100) score += 15;
+    if (property.seller?.verified) score += 15;
+    if (property.features.length > 2) score += 10;
+    
+    return Math.min(score, 100);
+  }
+
+  private calculateStudentSuitability(property: GumtreeProperty): number {
+    let score = 60; // Base score (good for budget-conscious students)
+    
+    if (property.furnished) score += 15;
+    if (property.billsIncluded) score += 10;
+    if (property.price < 500) score += 15; // Very affordable for students
+    
+    return Math.min(score, 100);
   }
 
   // Build Gumtree search URL for scraping
@@ -275,6 +330,14 @@ class GumtreeService {
     if (text.includes('student')) features.push('Student Friendly');
     
     return features;
+  }
+
+  // Add the missing getServiceInfo method to match PropertyService interface
+  getServiceInfo() {
+    return {
+      name: 'Gumtree',
+      isConfigured: !!this.apifyToken
+    };
   }
 
   // Test the scraper

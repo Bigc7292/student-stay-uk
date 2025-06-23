@@ -27,7 +27,7 @@ export interface StandardProperty {
     verified: boolean;
     rating?: number;
   };
-  source: 'zoopla' | 'openrent' | 'rightmove';
+  source: 'zoopla' | 'openrent' | 'rightmove' | 'gumtree' | 'onthemarket' | 'demo';
   sourceUrl?: string;
   lastUpdated: Date;
   features?: string[];
@@ -173,7 +173,7 @@ class RealPropertyService {
       images: property.images,
       available: property.available,
       availableFrom: property.availableFrom,
-      source: 'gumtree',
+      source: 'gumtree' as const,
       sourceUrl: property.url,
       lastUpdated: new Date(),
       features: property.features,
@@ -203,7 +203,7 @@ class RealPropertyService {
       images: property.images,
       available: property.available,
       availableFrom: property.availableFrom,
-      source: 'onthemarket',
+      source: 'onthemarket' as const,
       sourceUrl: property.url,
       lastUpdated: new Date(),
       features: property.features,
@@ -561,7 +561,7 @@ class RealPropertyService {
         images: ['/api/placeholder/400/300'],
         available: true,
         availableFrom: new Date().toISOString(),
-        source: 'demo',
+        source: 'demo' as const,
         sourceUrl: '#',
         lastUpdated: new Date(),
         features: ['WiFi', 'Furnished', 'Bills Included', 'Near University'],
@@ -584,7 +584,7 @@ class RealPropertyService {
         images: ['/api/placeholder/400/300'],
         available: true,
         availableFrom: new Date().toISOString(),
-        source: 'demo',
+        source: 'demo' as const,
         sourceUrl: '#',
         lastUpdated: new Date(),
         features: ['WiFi', 'Garden', 'Parking', 'Student Friendly'],
@@ -607,7 +607,7 @@ class RealPropertyService {
         images: ['/api/placeholder/400/300'],
         available: true,
         availableFrom: new Date().toISOString(),
-        source: 'demo',
+        source: 'demo' as const,
         sourceUrl: '#',
         lastUpdated: new Date(),
         features: ['WiFi', 'Furnished', 'Balcony', 'Transport Links'],
