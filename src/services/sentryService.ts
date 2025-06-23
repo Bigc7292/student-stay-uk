@@ -1,6 +1,5 @@
-
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
+// Remove @sentry/tracing import as it's not available
 
 interface SentryConfig {
   dsn: string;
@@ -39,9 +38,10 @@ class SentryService {
         tracesSampleRate: this.config.tracesSampleRate,
         debug: this.config.debug,
         integrations: [
-          new BrowserTracing({
+          // Use Sentry.browserTracingIntegration() if available, otherwise skip
+          ...(Sentry.browserTracingIntegration ? [Sentry.browserTracingIntegration({
             tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
-          }),
+          })] : []),
         ],
         beforeSend(event) {
           // Filter out development errors
@@ -153,7 +153,7 @@ class SentryService {
     try {
       return Sentry.startSpan({
         op: operation,
-        description: description || operation
+        // Remove description as it's not supported
       }, (span) => {
         return span;
       });

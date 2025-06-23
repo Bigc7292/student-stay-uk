@@ -8,7 +8,11 @@ const MockPerformanceObserver = vi.fn().mockImplementation((callback) => ({
   takeRecords: vi.fn().mockReturnValue([])
 }));
 
-MockPerformanceObserver.supportedEntryTypes = ['navigation', 'resource', 'paint'];
+// Add supportedEntryTypes as a static property
+Object.defineProperty(MockPerformanceObserver, 'supportedEntryTypes', {
+  value: ['navigation', 'resource', 'paint'],
+  writable: false
+});
 
 Object.defineProperty(global, 'PerformanceObserver', {
   writable: true,

@@ -16,6 +16,7 @@ export interface PerformanceMetrics {
   lcp: number;
   fid: number;
   cls: number;
+  interactionDelay: number; // Add missing property
   score: number;
   timestamp: number;
   userAgent: string;
@@ -56,6 +57,7 @@ class PerformanceService {
       lcp: 0,
       fid: 0,
       cls: 0,
+      interactionDelay: 0, // Add missing property
       score: 100,
       timestamp: Date.now(),
       userAgent: navigator.userAgent,
