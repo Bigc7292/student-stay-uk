@@ -1,3 +1,4 @@
+
 // Google Maps Service with free tier support
 export interface MapLocation {
   lat: number;
@@ -11,6 +12,12 @@ export interface RouteInfo {
   distance: string;
   duration: string;
   steps: any[];
+}
+
+// Define Coordinates interface
+export interface Coordinates {
+  lat: number;
+  lng: number;
 }
 
 class MapsService {
@@ -274,7 +281,7 @@ Free tier includes 28,000 map loads per month!`;
     type: string,
     radius: number = 1000
   ): Promise<Array<{ name: string; coordinates: Coordinates; placeId: string }>> {
-    if (!this.isLoaded() || !window.google) {
+    if (!this.isLoaded || !window.google) {
       return [];
     }
 
