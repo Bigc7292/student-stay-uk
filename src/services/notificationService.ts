@@ -163,36 +163,29 @@ class NotificationService {
   }
 
   // Show local notification
-  async showNotification(payload: NotificationPayload): Promise<void> {
-    if (!this.isAvailable()) {
-      console.warn('🔔 Notifications not available, showing console message instead');
-      console.log('📢 Notification:', payload.title, '-', payload.body);
+  async showNotification(title: string, options: NotificationOptions = {}): Promise<void> {
+    if (!this.isSupported()) {
+      console.warn('Notifications are not supported in this browser');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      console.warn('Notification permission not granted');
       return;
     }
 
     try {
-      const permission = await this.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Notification permission denied');
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(payload.title, {
-        body: payload.body,
-        icon: payload.icon || '/icon-192x192.png',
-        badge: payload.badge || '/icon-72x72.png',
-        image: payload.image,
-        data: payload.data,
-        actions: payload.actions,
-        tag: payload.tag,
-        requireInteraction: payload.requireInteraction || false,
-        vibrate: [200, 100, 200],
-        timestamp: Date.now()
+      // Remove unsupported properties
+      const { image, ...supportedOptions } = options as any;
+      
+      const notification = new Notification(title, {
+        ...supportedOptions,
+        icon: options.icon || '/favicon.ico'
       });
 
-      console.log('🔔 Local notification shown:', payload.title);
+      console.log('🔔 Local notification shown:', title);
     } catch (error) {
-      console.error('🔔 Failed to show notification:', error);
+      console.error('Failed to show notification:', error);
     }
   }
 

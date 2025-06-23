@@ -1,7 +1,7 @@
 
 // Test setup file
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
 
 // Mock IntersectionObserver
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
@@ -52,61 +52,18 @@ global.sessionStorage = createStorageMock() as any;
 // Mock fetch
 global.fetch = vi.fn();
 
-// Mock Google Maps API
-global.google = {
-  maps: {
-    Map: vi.fn().mockImplementation(() => ({
-      setCenter: vi.fn(),
-      setZoom: vi.fn(),
-      addListener: vi.fn(),
-    })),
-    Marker: vi.fn().mockImplementation(() => ({
-      setMap: vi.fn(),
-      setPosition: vi.fn(),
-      addListener: vi.fn(),
-    })),
-    InfoWindow: vi.fn().mockImplementation(() => ({
-      setContent: vi.fn(),
-      open: vi.fn(),
-      close: vi.fn(),
-    })),
-    DirectionsService: vi.fn().mockImplementation(() => ({
-      route: vi.fn(),
-    })),
-    DirectionsRenderer: vi.fn().mockImplementation(() => ({
-      setMap: vi.fn(),
-      setDirections: vi.fn(),
-    })),
-    StreetViewPanorama: vi.fn().mockImplementation(() => ({
-      setPosition: vi.fn(),
-      setVisible: vi.fn(),
-    })),
-    places: {
-      PlacesService: vi.fn().mockImplementation(() => ({
-        nearbySearch: vi.fn(),
-        getDetails: vi.fn(),
-      })),
-    },
-    geometry: {
-      spherical: {
-        computeDistanceBetween: vi.fn().mockReturnValue(1000),
-      },
-    },
-    LatLng: vi.fn().mockImplementation((lat, lng) => ({ lat: () => lat, lng: () => lng })),
-  },
-} as any;
-
 // Mock PerformanceObserver
-global.PerformanceObserver = vi.fn().mockImplementation(() => ({
+const mockPerformanceObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   disconnect: vi.fn()
-})) as any;
+}));
 
-// Add supportedEntryTypes to PerformanceObserver
-Object.defineProperty(global.PerformanceObserver, 'supportedEntryTypes', {
+Object.defineProperty(mockPerformanceObserver, 'supportedEntryTypes', {
   value: ['navigation', 'resource', 'measure', 'mark'],
   writable: false
 });
+
+global.PerformanceObserver = mockPerformanceObserver as any;
 
 // Mock Notification API
 global.Notification = vi.fn().mockImplementation(() => ({
@@ -119,54 +76,6 @@ Object.defineProperty(Notification, 'permission', {
   value: 'granted',
   writable: true
 });
-
-// Mock navigator.serviceWorker
-Object.defineProperty(navigator, 'serviceWorker', {
-  value: {
-    register: vi.fn().mockResolvedValue({
-      installing: null,
-      waiting: null,
-      active: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      scope: '',
-      unregister: vi.fn(),
-      update: vi.fn(),
-      pushManager: { subscribe: vi.fn() },
-      sync: { register: vi.fn() },
-      showNotification: vi.fn()
-    } as any),
-    ready: Promise.resolve({
-      installing: null,
-      waiting: null,
-      active: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      scope: '',
-      unregister: vi.fn(),
-      update: vi.fn(),
-      pushManager: { subscribe: vi.fn() },
-      sync: { register: vi.fn() },
-      showNotification: vi.fn()
-    } as any),
-  },
-  writable: true,
-});
-
-// Mock IndexedDB
-const mockIDBRequest = {
-  result: null,
-  error: null,
-  onsuccess: null,
-  onerror: null,
-};
-
-global.indexedDB = {
-  open: vi.fn().mockReturnValue(mockIDBRequest),
-  deleteDatabase: vi.fn(),
-  databases: vi.fn(),
-  cmp: vi.fn()
-} as any;
 
 // Mock crypto for UUID generation
 global.crypto = {
