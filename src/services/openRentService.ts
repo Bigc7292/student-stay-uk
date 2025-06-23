@@ -10,9 +10,6 @@ import type {
   PropertyServiceConfig
 } from './core/PropertyServiceInterface';
 
-// Import the Property interface from PropertyServiceManager for compatibility
-import type { Property } from './PropertyServiceManager';
-
 class OpenRentService implements PropertyServiceInterface {
   private config: PropertyServiceConfig = {
     enabled: true,
@@ -21,14 +18,14 @@ class OpenRentService implements PropertyServiceInterface {
     retryAttempts: 3
   };
 
-  async searchProperties(filters: PropertySearchFilters): Promise<Property[]> {
+  async searchProperties(filters: PropertySearchFilters): Promise<StandardProperty[]> {
     // For now, return empty array - this would be implemented with actual OpenRent API
     console.log('🏠 OpenRent service called with filters:', filters);
     
     // Simulate some delay
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Return empty array for now, but with proper Property type
+    // Return empty array for now, but with proper StandardProperty type
     return [];
   }
 
