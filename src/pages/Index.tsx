@@ -35,7 +35,8 @@ const PropertySearch = lazy(() => import('@/components/CleanPropertySearch'));
 import AIChatbot from '@/components/AIChatbot';
 const InteractiveMaps = lazy(() => import('@/components/InteractiveMaps'));
 
-const ApplicationAssistant = lazy(() => import('@/components/CleanApplicationAssistant'));
+// Import ApplicationAssistant directly to fix hooks error
+import ApplicationAssistant from '@/components/CleanApplicationAssistant';
 const MaintenanceManager = lazy(() => import('@/components/MaintenanceManager'));
 const BillSplitter = lazy(() => import('@/components/BillSplitter'));
 const LegalGuidance = lazy(() => import('@/components/LegalGuidance'));
@@ -94,7 +95,7 @@ const Index = () => {
 
   const renderContent = () => {
     // Components that need Suspense (still lazy-loaded)
-    const suspenseComponents = ['maps', 'application', 'maintenance', 'bills', 'legal', 'forum', 'deposit', 'accessibility', 'monitoring', 'api-keys', 'api-test', 'maps-test', 'debug-api', 'simple-maps', 'working-maps', 'direct-maps'];
+    const suspenseComponents = ['maps', 'maintenance', 'bills', 'legal', 'forum', 'deposit', 'accessibility', 'monitoring', 'api-keys', 'api-test', 'maps-test', 'debug-api', 'simple-maps', 'working-maps', 'direct-maps'];
 
     if (suspenseComponents.includes(activeTab)) {
       return (
