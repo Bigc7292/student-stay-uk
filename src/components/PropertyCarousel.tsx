@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { propertyDataUKService, type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { supabasePropertyService, type PropertySearchFilters } from '@/services/supabasePropertyService';
 import { Bath, Bed, ChevronLeft, ChevronRight, MapPin, Shield, TrendingUp } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -23,18 +24,29 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
       const majorCities = allCities.sort(() => Math.random() - 0.5); // Randomize city order
 
       if (location) {
-        // If specific location provided, use regular property search
+        // If specific location provided, search database for that location
         console.log(`🔍 Loading properties for specific location: ${location}`);
-        const [regularRentals, hmoRentals] = await Promise.all([
-          propertyDataUKService.searchRentals({ location, maxPrice: 800 }),
-          propertyDataUKService.searchHMORentals({ location, maxPrice: 300 })
-        ]);
 
-        const allProperties = [...regularRentals, ...hmoRentals]
-          .slice(0, maxProperties)
-          .sort(() => Math.random() - 0.5);
+        const searchFilters: PropertySearchFilters = {
+          location,
+          maxPrice: 800,
+          available: true,
+          limit: maxProperties
+        };
 
-        setProperties(allProperties);
+        const allProperties = await supabasePropertyService.searchProperties(searchFilters);
+
+        console.log(`🔍 Carousel loaded ${allProperties.length} properties for ${location}`);
+        allProperties.forEach((prop, idx) => {
+          console.log(`   ${idx + 1}. ${prop.title} - Images: ${prop.images?.length || 0}`);
+          if (prop.images && prop.images.length > 0) {
+            console.log(`      First image: ${prop.images[0]}`);
+          }
+        });
+
+        // Randomize order for variety
+        const randomizedProperties = allProperties.sort(() => Math.random() - 0.5);
+        setProperties(randomizedProperties);
       } else {
         // For home page carousel, use Bright Data Zoopla for multi-city display
         console.log('🌍 Loading properties from multiple UK cities via Bright Data Zoopla...');
@@ -77,18 +89,30 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
 
       for (const city of citiesToUse) {
         try {
-          // Search both regular rentals and HMO properties for each city
-          const [regularRentals, hmoRentals] = await Promise.all([
-            propertyDataUKService.searchRentals({ location: city, maxPrice: 800 }),
-            propertyDataUKService.searchHMORentals({ location: city, maxPrice: 300 })
-          ]);
+          // Search database for properties in this city
+          const searchFilters: PropertySearchFilters = {
+            location: city,
+            maxPrice: 800,
+            available: true,
+            limit: 2 // 2 per city for diversity
+          };
 
-          // Take 1-2 properties from each city for diversity
-          const cityProperties = [...regularRentals, ...hmoRentals]
-            .slice(0, 2) // 2 per city
-            .map(prop => ({ ...prop, sourceCity: city })); // Add source city for tracking
+          const cityProperties = await supabasePropertyService.searchProperties(searchFilters);
 
-          allProperties.push(...cityProperties);
+          console.log(`🏙️ ${city}: Found ${cityProperties.length} properties`);
+          cityProperties.forEach((prop, idx) => {
+            if (idx < 2) { // Only log first 2
+              console.log(`   ${prop.title} - Images: ${prop.images?.length || 0}`);
+            }
+          });
+
+          // Add source city for tracking
+          const propertiesWithSource = cityProperties.map(prop => ({
+            ...prop,
+            sourceCity: city
+          }));
+
+          allProperties.push(...propertiesWithSource);
 
           // If we have enough properties, break early
           if (allProperties.length >= maxProperties) break;
@@ -215,14 +239,16 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
         <div className="grid md:grid-cols-2 min-h-[400px]">
           {/* Image Section */}
           <div className="relative overflow-hidden">
-            {currentProperty.images && currentProperty.images.length > 0 &&
-             currentProperty.images[0] !== '/placeholder.svg' &&
-             currentProperty.images[0].startsWith('http') ? (
+            {currentProperty.images && currentProperty.images.length > 0 ? (
               <img
                 src={currentProperty.images[0]}
                 alt={currentProperty.title}
                 className="w-full h-full object-cover"
+                onLoad={() => {
+                  console.log('✅ Carousel image loaded:', currentProperty.images[0]);
+                }}
                 onError={(e) => {
+                  console.log('❌ Carousel image failed:', currentProperty.images[0]);
                   // Fallback to "No Photos Available" if real image fails to load
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';

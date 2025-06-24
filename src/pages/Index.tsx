@@ -30,7 +30,7 @@ import { Suspense, lazy, useState } from 'react';
 
 // Lazy load components for better performance
 const PropertyCarousel = lazy(() => import('@/components/PropertyCarousel'));
-const PropertySearch = lazy(() => import('@/components/CleanPropertySearch'));
+// const PropertySearch = lazy(() => import('@/components/CleanPropertySearch'));
 // Import AIChatbot directly to fix dynamic import issue
 import AIChatbot from '@/components/AIChatbot';
 const InteractiveMaps = lazy(() => import('@/components/InteractiveMaps'));
@@ -220,7 +220,10 @@ const Index = () => {
               </p>
             </div>
             <Suspense fallback={<LoadingSpinner />}>
-              <PropertySearch />
+              {/* <PropertySearch /> */}
+              <div className="text-center p-8">
+                <p>Property Search temporarily disabled for testing</p>
+              </div>
             </Suspense>
           </div>
         );
@@ -287,7 +290,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                   className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  aria-expanded={showToolsDropdown}
+                  aria-expanded={showToolsDropdown ? true : false}
                 >
                   <Settings className="w-4 h-4" />
                   <span>Tools</span>

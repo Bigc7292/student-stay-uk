@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { propertyDataUKService, type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { type PropertyDataUKProperty } from '@/services/propertyDataUKService';
 import { Bed, Grid, Home, List, MapPin, Search, Shield, TrendingDown } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -39,35 +39,20 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
     try {
       console.log('🔍 Searching with filters:', filters);
 
-      const searchFilters = {
+      const searchFilters: PropertySearchFilters = {
         location: filters.location,
         maxPrice: filters.maxPrice,
         minPrice: filters.minPrice,
         bedrooms: filters.bedrooms || undefined,
         propertyType: filters.propertyType === 'any' ? undefined : filters.propertyType,
-        furnished: true // Students typically need furnished
+        furnished: true, // Students typically need furnished
+        available: true, // Only show available properties
+        roomOnly: filters.roomOnly,
+        limit: 50 // Limit results for performance
       };
 
-      // Search both regular rentals and HMO properties for students
-      const [regularRentals, hmoRentals] = await Promise.all([
-        propertyDataUKService.searchRentals(searchFilters),
-        propertyDataUKService.searchHMORentals(searchFilters)
-      ]);
-
-      let allProperties = [...regularRentals, ...hmoRentals];
-
-      // Filter by room only if selected
-      if (filters.roomOnly) {
-        allProperties = allProperties.filter(p => p.propertyType === 'shared');
-      }
-
-      // Filter by price range
-      allProperties = allProperties.filter(p => 
-        p.price >= filters.minPrice && p.price <= filters.maxPrice
-      );
-
-      // Sort by price
-      allProperties.sort((a, b) => a.price - b.price);
+      // Search properties from Supabase database
+      const allProperties = await supabasePropertyService.searchProperties(searchFilters);
 
       // Add mock local amenities data for enhanced display
       const enhancedProperties = allProperties.map(property => ({

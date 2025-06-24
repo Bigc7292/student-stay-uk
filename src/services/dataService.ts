@@ -73,24 +73,25 @@ class DataService {
       const listings: AccommodationListing[] = [];
 
       try {
-        // Import real property service
-        const { realPropertyService } = await import('./realPropertyService');
+        // Import Supabase property service
+        const { supabasePropertyService } = await import('./supabasePropertyService');
 
-        // Use real APIs (Zoopla via RapidAPI + OpenRent via Apify)
+        // Use database for property search
         const searchFilters = {
           location,
           maxPrice,
-          propertyType: type,
-          radius: 5000 // 5km radius
+          propertyType: type === 'any' ? undefined : type,
+          available: true,
+          limit: 50
         };
 
-        const realProperties = await realPropertyService.searchProperties(searchFilters);
+        const realProperties = await supabasePropertyService.searchProperties(searchFilters);
 
-        // Transform real properties to our format
+        // Transform database properties to our format
         const transformedListings = realProperties.map(property => this.transformToAccommodationListing(property));
         listings.push(...transformedListings);
 
-        console.log(`✅ Fetched ${listings.length} real properties from APIs`);
+        console.log(`✅ Fetched ${listings.length} properties from database`);
 
       } catch (error) {
         console.warn('Failed to fetch real data, using mock data:', error);

@@ -1,0 +1,470 @@
+{
+  "properties": [],
+  "universities": [
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Aberdeen.html",
+      "university": "Student accommodation in Aberdeen",
+      "location": "Student accommodation in Aberdeen"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Aberystwyth.html",
+      "university": "Student accommodation in Aberystwyth",
+      "location": "Student accommodation in Aberystwyth"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bangor.html",
+      "university": "Student accommodation in Bangor",
+      "location": "Student accommodation in Bangor"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bath.html",
+      "university": "Student accommodation in Bath",
+      "location": "Student accommodation in Bath"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bedford.html",
+      "university": "Student accommodation in Bedford",
+      "location": "Student accommodation in Bedford"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Belfast.html",
+      "university": "Student accommodation in Belfast",
+      "location": "Student accommodation in Belfast"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Berkhamsted.html",
+      "university": "Student accommodation in Berkhamsted",
+      "location": "Student accommodation in Berkhamsted"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Birmingham.html",
+      "university": "Student accommodation in Birmingham",
+      "location": "Student accommodation in Birmingham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bolton.html",
+      "university": "Student accommodation in Bolton",
+      "location": "Student accommodation in Bolton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bournemouth.html",
+      "university": "Student accommodation in Bournemouth",
+      "location": "Student accommodation in Bournemouth"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bradford.html",
+      "university": "Student accommodation in Bradford",
+      "location": "Student accommodation in Bradford"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Brighton.html",
+      "university": "Student accommodation in Brighton",
+      "location": "Student accommodation in Brighton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Bristol.html",
+      "university": "Student accommodation in Bristol",
+      "location": "Student accommodation in Bristol"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Buckingham.html",
+      "university": "Student accommodation in Buckingham",
+      "location": "Student accommodation in Buckingham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Cambridge.html",
+      "university": "Student accommodation in Cambridge",
+      "location": "Student accommodation in Cambridge"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Canterbury.html",
+      "university": "Student accommodation in Canterbury",
+      "location": "Student accommodation in Canterbury"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Cardiff.html",
+      "university": "Student accommodation in Cardiff",
+      "location": "Student accommodation in Cardiff"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Carlisle.html",
+      "university": "Student accommodation in Carlisle",
+      "location": "Student accommodation in Carlisle"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Carmarthen.html",
+      "university": "Student accommodation in Carmarthen",
+      "location": "Student accommodation in Carmarthen"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Chelmsford.html",
+      "university": "Student accommodation in Chelmsford",
+      "location": "Student accommodation in Chelmsford"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Cheltenham.html",
+      "university": "Student accommodation in Cheltenham",
+      "location": "Student accommodation in Cheltenham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Chester.html",
+      "university": "Student accommodation in Chester",
+      "location": "Student accommodation in Chester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Chichester.html",
+      "university": "Student accommodation in Chichester",
+      "location": "Student accommodation in Chichester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Cirencester.html",
+      "university": "Student accommodation in Cirencester",
+      "location": "Student accommodation in Cirencester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Colchester.html",
+      "university": "Student accommodation in Colchester",
+      "location": "Student accommodation in Colchester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Coventry.html",
+      "university": "Student accommodation in Coventry",
+      "location": "Student accommodation in Coventry"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Cranfield.html",
+      "university": "Student accommodation in Cranfield",
+      "location": "Student accommodation in Cranfield"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Crewe.html",
+      "university": "Student accommodation in Crewe",
+      "location": "Student accommodation in Crewe"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Derby.html",
+      "university": "Student accommodation in Derby",
+      "location": "Student accommodation in Derby"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Dundee.html",
+      "university": "Student accommodation in Dundee",
+      "location": "Student accommodation in Dundee"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Durham.html",
+      "university": "Student accommodation in Durham",
+      "location": "Student accommodation in Durham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Edinburgh.html",
+      "university": "Student accommodation in Edinburgh",
+      "location": "Student accommodation in Edinburgh"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Exeter.html",
+      "university": "Student accommodation in Exeter",
+      "location": "Student accommodation in Exeter"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Falmouth.html",
+      "university": "Student accommodation in Falmouth",
+      "location": "Student accommodation in Falmouth"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Galashiels.html",
+      "university": "Student accommodation in Galashiels",
+      "location": "Student accommodation in Galashiels"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Glasgow.html",
+      "university": "Student accommodation in Glasgow",
+      "location": "Student accommodation in Glasgow"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Guildford.html",
+      "university": "Student accommodation in Guildford",
+      "location": "Student accommodation in Guildford"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Hatfield.html",
+      "university": "Student accommodation in Hatfield",
+      "location": "Student accommodation in Hatfield"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/High%20Wycombe.html",
+      "university": "Student accommodation in High Wycombe",
+      "location": "Student accommodation in High Wycombe"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Huddersfield.html",
+      "university": "Student accommodation in Huddersfield",
+      "location": "Student accommodation in Huddersfield"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Hull.html",
+      "university": "Student accommodation in Hull",
+      "location": "Student accommodation in Hull"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Inverness.html",
+      "university": "Student accommodation in Inverness",
+      "location": "Student accommodation in Inverness"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Keele.html",
+      "university": "Student accommodation in Keele",
+      "location": "Student accommodation in Keele"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Lancaster.html",
+      "university": "Student accommodation in Lancaster",
+      "location": "Student accommodation in Lancaster"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Leeds.html",
+      "university": "Student accommodation in Leeds",
+      "location": "Student accommodation in Leeds"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Leicester.html",
+      "university": "Student accommodation in Leicester",
+      "location": "Student accommodation in Leicester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Lincoln.html",
+      "university": "Student accommodation in Lincoln",
+      "location": "Student accommodation in Lincoln"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Liverpool.html",
+      "university": "Student accommodation in Liverpool",
+      "location": "Student accommodation in Liverpool"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/London.html",
+      "university": "Student accommodation in London",
+      "location": "Student accommodation in London"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Loughborough.html",
+      "university": "Student accommodation in Loughborough",
+      "location": "Student accommodation in Loughborough"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Loughton.html",
+      "university": "Student accommodation in Loughton",
+      "location": "Student accommodation in Loughton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Luton.html",
+      "university": "Student accommodation in Luton",
+      "location": "Student accommodation in Luton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Manchester.html",
+      "university": "Student accommodation in Manchester",
+      "location": "Student accommodation in Manchester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Middlesbrough.html",
+      "university": "Student accommodation in Middlesbrough",
+      "location": "Student accommodation in Middlesbrough"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Newcastle.html",
+      "university": "Student accommodation in Newcastle",
+      "location": "Student accommodation in Newcastle"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Newport.html",
+      "university": "Student accommodation in Newport",
+      "location": "Student accommodation in Newport"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Northampton.html",
+      "university": "Student accommodation in Northampton",
+      "location": "Student accommodation in Northampton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Norwich.html",
+      "university": "Student accommodation in Norwich",
+      "location": "Student accommodation in Norwich"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Nottingham.html",
+      "university": "Student accommodation in Nottingham",
+      "location": "Student accommodation in Nottingham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Ormskirk.html",
+      "university": "Student accommodation in Ormskirk",
+      "location": "Student accommodation in Ormskirk"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Oxford.html",
+      "university": "Student accommodation in Oxford",
+      "location": "Student accommodation in Oxford"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Paisley.html",
+      "university": "Student accommodation in Paisley",
+      "location": "Student accommodation in Paisley"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Peterborough.html",
+      "university": "Student accommodation in Peterborough",
+      "location": "Student accommodation in Peterborough"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Plymouth.html",
+      "university": "Student accommodation in Plymouth",
+      "location": "Student accommodation in Plymouth"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Pontypridd.html",
+      "university": "Student accommodation in Pontypridd",
+      "location": "Student accommodation in Pontypridd"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Portsmouth.html",
+      "university": "Student accommodation in Portsmouth",
+      "location": "Student accommodation in Portsmouth"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Preston.html",
+      "university": "Student accommodation in Preston",
+      "location": "Student accommodation in Preston"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Reading.html",
+      "university": "Student accommodation in Reading",
+      "location": "Student accommodation in Reading"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Sheffield.html",
+      "university": "Student accommodation in Sheffield",
+      "location": "Student accommodation in Sheffield"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Southampton.html",
+      "university": "Student accommodation in Southampton",
+      "location": "Student accommodation in Southampton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Southend.html",
+      "university": "Student accommodation in Southend",
+      "location": "Student accommodation in Southend"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/St%20Andrews.html",
+      "university": "Student accommodation in St Andrews",
+      "location": "Student accommodation in St Andrews"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Stirling.html",
+      "university": "Student accommodation in Stirling",
+      "location": "Student accommodation in Stirling"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Stoke.html",
+      "university": "Student accommodation in Stoke",
+      "location": "Student accommodation in Stoke"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Sunderland.html",
+      "university": "Student accommodation in Sunderland",
+      "location": "Student accommodation in Sunderland"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Swansea.html",
+      "university": "Student accommodation in Swansea",
+      "location": "Student accommodation in Swansea"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Winchester.html",
+      "university": "Student accommodation in Winchester",
+      "location": "Student accommodation in Winchester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Wolverhampton.html",
+      "university": "Student accommodation in Wolverhampton",
+      "location": "Student accommodation in Wolverhampton"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Worcester.html",
+      "university": "Student accommodation in Worcester",
+      "location": "Student accommodation in Worcester"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/Wrexham.html",
+      "university": "Student accommodation in Wrexham",
+      "location": "Student accommodation in Wrexham"
+    },
+    {
+      "url": "https://www.rightmove.co.uk/student-accommodation/York.html",
+      "university": "Student accommodation in York",
+      "location": "Student accommodation in York"
+    }
+  ],
+  "guides": [
+    {
+      "type": "rental_guide",
+      "title": "Renter Guides",
+      "url": "https://www.rightmove.co.uk/guides/renter/",
+      "articles": [],
+      "scraped_at": "2025-06-24T17:02:47.321Z"
+    },
+    {
+      "type": "student_guide",
+      "title": "Student Guides",
+      "url": "https://www.rightmove.co.uk/guides/student/",
+      "articles": [
+        {
+          "title": "Private halls or shared accommodation?",
+          "content": "Once you’ve completed your first year of University, it’ll be time to move on to your second-year accommodation and we…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/private-halls-or-shared-accommodation/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        },
+        {
+          "title": "Being realistic about what you can afford",
+          "content": "Before you can even begin to think about where you want to live it is useful to figure out what…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/what-you-can-afford/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        },
+        {
+          "title": "Choosing who to live with and where",
+          "content": "Picking who to share a property with can be just as important a decision as choosing where to live. Where…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/who-to-live-with-and-where/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        },
+        {
+          "title": "Viewing and securing properties",
+          "content": "So, you’ve found the perfect housemates and have decided where you want to live… now you just need to find…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/viewing-and-securing-properties/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        },
+        {
+          "title": "Moving in and out of a property",
+          "content": "Moving in and out of properties can be a stressful and tiring experience as there are so many things to…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/moving-in-and-out-of-a-property/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        },
+        {
+          "title": "International students",
+          "content": "As an international student studying in the UK it can be difficult to understand which laws and rules apply to…",
+          "url": "https://www.rightmove.co.uk/guides/renter/student-property/international-students/",
+          "type": "student_guide",
+          "scraped_at": "2025-06-24T17:02:52.489Z"
+        }
+      ],
+      "scraped_at": "2025-06-24T17:02:52.489Z"
+    }
+  ],
+  "rentalInfo": []
+}

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { propertyDataUKService, type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { type PropertyDataUKProperty } from '@/services/propertyDataUKService';
 import { Bed, Grid, Home, List, Loader2, MapPin, Search, Shield, TrendingDown } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 
@@ -48,34 +48,20 @@ const CleanPropertySearch: React.FC<PropertySearchProps> = ({ onResults }) => {
     try {
       console.log('🔍 Searching with filters:', filters);
 
-      const searchFilters = {
+      const searchFilters: PropertySearchFilters = {
         location: filters.location,
         maxPrice: filters.maxPrice,
         minPrice: filters.minPrice,
         bedrooms: filters.bedrooms || undefined,
         propertyType: filters.propertyType === 'any' ? undefined : filters.propertyType,
-        furnished: true
+        furnished: true,
+        available: true,
+        roomOnly: filters.roomOnly,
+        limit: 50
       };
 
-      // Search both regular rentals and HMO properties
-      const [regularRentals, hmoRentals] = await Promise.all([
-        propertyDataUKService.searchRentals(searchFilters),
-        propertyDataUKService.searchHMORentals(searchFilters)
-      ]);
-
-      let allProperties = [...regularRentals, ...hmoRentals];
-
-      // Apply filters
-      if (filters.roomOnly) {
-        allProperties = allProperties.filter(p => p.propertyType === 'shared');
-      }
-
-      allProperties = allProperties.filter(p => 
-        p.price >= filters.minPrice && p.price <= filters.maxPrice
-      );
-
-      // Sort by price
-      allProperties.sort((a, b) => a.price - b.price);
+      // Search database for properties
+      const allProperties = await supabasePropertyService.searchProperties(searchFilters);
 
       // Enhance properties with mock data
       const enhancedProperties = allProperties.map(property => ({
