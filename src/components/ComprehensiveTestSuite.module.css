@@ -1,0 +1,7 @@
+.progressBar {
+  transition: width 0.3s;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #2563eb; /* Tailwind blue-600 */
+  width: var(--progress-width, 0%);
+}

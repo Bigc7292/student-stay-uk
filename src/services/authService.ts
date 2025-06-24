@@ -1,3 +1,11 @@
+import CryptoJS from 'crypto-js';
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import DOMPurify from 'dompurify';
+
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'studenthome_default_key';
+
 // Authentication Service with local storage and optional Firebase Auth
 export interface User {
   id: string;
@@ -45,54 +53,61 @@ export interface SavedSearch {
   createdAt: Date;
 }
 
+// Utility: sanitize string input
+function sanitizeInput(input: string): string {
+  // Remove script tags and dangerous HTML
+  return DOMPurify.sanitize(input, {ALLOWED_TAGS: [], ALLOWED_ATTR: []}).trim();
+}
+
+// Utility: validate email format
+function validateEmail(email: string): void {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new Error('Invalid email address');
+  }
+}
+
+// Utility: validate and sanitize name
+function validateName(name: string): string {
+  const sanitized = sanitizeInput(name);
+  if (!sanitized || sanitized.length < 2 || sanitized.length > 50) {
+    throw new Error('Name must be 2-50 characters and not contain special characters.');
+  }
+  return sanitized;
+}
+
 class AuthService {
   private currentUser: User | null = null;
   private listeners: ((user: User | null) => void)[] = [];
-  private storageKey = 'studenthome_user';
+  // private storageKey = 'studenthome_user'; // No longer used
 
   constructor() {
-    this.loadUserFromStorage();
+    // this.loadUserFromStorage(); // No longer load from localStorage
   }
 
-  // Load user from localStorage
-  private loadUserFromStorage() {
-    try {
-      const userData = localStorage.getItem(this.storageKey);
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        // Convert date strings back to Date objects
-        parsed.createdAt = new Date(parsed.createdAt);
-        parsed.lastLogin = new Date(parsed.lastLogin);
-        parsed.applicationHistory = parsed.applicationHistory.map((app: any) => ({
-          ...app,
-          submittedAt: new Date(app.submittedAt)
-        }));
-        parsed.savedSearches = parsed.savedSearches.map((search: any) => ({
-          ...search,
-          createdAt: new Date(search.createdAt)
-        }));
-        this.currentUser = parsed;
-        this.notifyListeners();
-      }
-    } catch (error) {
-      console.error('Failed to load user from storage:', error);
-      localStorage.removeItem(this.storageKey);
+  // Password strength validation
+  private validatePasswordStrength(password: string): void {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    if (
+      password.length < minLength ||
+      !hasUpper ||
+      !hasLower ||
+      !hasNumber ||
+      !hasSpecial
+    ) {
+      throw new Error('Password must be at least 8 characters and include upper, lower, number, and special character.');
     }
   }
 
-  // Save user to localStorage
-  private saveUserToStorage() {
-    if (this.currentUser) {
-      try {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.currentUser));
-      } catch (error) {
-        console.error('Failed to save user to storage:', error);
-      }
-    }
-  }
-
-  // Register new user
+  // Example registration method with password validation
   async register(email: string, password: string, name: string): Promise<User> {
+    this.validatePasswordStrength(password);
+    validateEmail(email);
+    const cleanName = validateName(name);
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -104,8 +119,8 @@ class AuthService {
 
     const newUser: User = {
       id: this.generateId(),
-      email,
-      name,
+      email: sanitizeInput(email),
+      name: cleanName,
       preferences: {
         preferredLocation: '',
         maxBudget: 800,
@@ -127,14 +142,16 @@ class AuthService {
     // Save to localStorage (in real app, this would be sent to server)
     this.saveUserToAllUsers(newUser);
     this.currentUser = newUser;
-    this.saveUserToStorage();
+    // Do not store user data in localStorage
+    // this.saveUserToStorage();
     this.notifyListeners();
 
     return newUser;
   }
 
-  // Login user
+  // Example login method
   async login(email: string, password: string): Promise<User> {
+    validateEmail(email);
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -151,7 +168,8 @@ class AuthService {
     user.lastLogin = new Date();
     this.updateUserInAllUsers(user);
     this.currentUser = user;
-    this.saveUserToStorage();
+    // Do not store user data in localStorage
+    // this.saveUserToStorage();
     this.notifyListeners();
 
     return user;
@@ -160,7 +178,7 @@ class AuthService {
   // Logout user
   logout() {
     this.currentUser = null;
-    localStorage.removeItem(this.storageKey);
+    // localStorage.removeItem(this.storageKey);
     this.notifyListeners();
   }
 
@@ -177,9 +195,17 @@ class AuthService {
   // Update user preferences
   async updatePreferences(preferences: Partial<UserPreferences>): Promise<void> {
     if (!this.currentUser) throw new Error('No user logged in');
+    // Sanitize and validate preferences
+    const cleanPrefs: Partial<UserPreferences> = { ...preferences };
+    if (cleanPrefs.preferredLocation)
+      cleanPrefs.preferredLocation = sanitizeInput(cleanPrefs.preferredLocation);
+    if (cleanPrefs.university)
+      cleanPrefs.university = sanitizeInput(cleanPrefs.university);
+    if (cleanPrefs.amenities)
+      cleanPrefs.amenities = cleanPrefs.amenities.map(sanitizeInput);
 
-    this.currentUser.preferences = { ...this.currentUser.preferences, ...preferences };
-    this.saveUserToStorage();
+    this.currentUser.preferences = { ...this.currentUser.preferences, ...cleanPrefs };
+    // this.saveUserToStorage();
     this.updateUserInAllUsers(this.currentUser);
     this.notifyListeners();
   }
@@ -194,7 +220,7 @@ class AuthService {
     };
 
     this.currentUser.applicationHistory.push(newRecord);
-    this.saveUserToStorage();
+    // this.saveUserToStorage();
     this.updateUserInAllUsers(this.currentUser);
     this.notifyListeners();
   }
@@ -202,15 +228,25 @@ class AuthService {
   // Add saved search
   async addSavedSearch(search: Omit<SavedSearch, 'id' | 'createdAt'>): Promise<void> {
     if (!this.currentUser) throw new Error('No user logged in');
-
-    const newSearch: SavedSearch = {
+    // Sanitize search fields
+    const cleanSearch = {
       ...search,
+      name: sanitizeInput(search.name),
+      criteria: {
+        ...search.criteria,
+        location: sanitizeInput(search.criteria.location),
+        university: sanitizeInput(search.criteria.university),
+        amenities: search.criteria.amenities.map(sanitizeInput)
+      }
+    };
+    const newSearch: SavedSearch = {
+      ...cleanSearch,
       id: this.generateId(),
       createdAt: new Date()
     };
 
     this.currentUser.savedSearches.push(newSearch);
-    this.saveUserToStorage();
+    // this.saveUserToStorage();
     this.updateUserInAllUsers(this.currentUser);
     this.notifyListeners();
   }
@@ -220,7 +256,7 @@ class AuthService {
     if (!this.currentUser) throw new Error('No user logged in');
 
     this.currentUser.savedSearches = this.currentUser.savedSearches.filter(s => s.id !== searchId);
-    this.saveUserToStorage();
+    // this.saveUserToStorage();
     this.updateUserInAllUsers(this.currentUser);
     this.notifyListeners();
   }
@@ -245,8 +281,11 @@ class AuthService {
 
   private getAllUsers(): User[] {
     try {
-      const users = localStorage.getItem('studenthome_all_users');
-      return users ? JSON.parse(users) : [];
+      const encrypted = localStorage.getItem('studenthome_all_users');
+      if (!encrypted) return [];
+      const bytes = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_KEY);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return decrypted ? JSON.parse(decrypted) : [];
     } catch {
       return [];
     }
@@ -255,7 +294,8 @@ class AuthService {
   private saveUserToAllUsers(user: User) {
     const users = this.getAllUsers();
     users.push(user);
-    localStorage.setItem('studenthome_all_users', JSON.stringify(users));
+    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), ENCRYPTION_KEY).toString();
+    localStorage.setItem('studenthome_all_users', encrypted);
   }
 
   private updateUserInAllUsers(updatedUser: User) {
@@ -263,7 +303,8 @@ class AuthService {
     const index = users.findIndex(u => u.id === updatedUser.id);
     if (index !== -1) {
       users[index] = updatedUser;
-      localStorage.setItem('studenthome_all_users', JSON.stringify(users));
+      const encrypted = CryptoJS.AES.encrypt(JSON.stringify(users), ENCRYPTION_KEY).toString();
+      localStorage.setItem('studenthome_all_users', encrypted);
     }
   }
 
@@ -314,7 +355,7 @@ class AuthService {
     };
 
     this.currentUser = demoUser;
-    this.saveUserToStorage();
+    // this.saveUserToStorage();
     this.notifyListeners();
     return demoUser;
   }

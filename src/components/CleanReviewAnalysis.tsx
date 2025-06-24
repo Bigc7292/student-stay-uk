@@ -1,20 +1,20 @@
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
+import { Star, TrendingUp, TrendingDown, MessageSquare, Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, MessageSquare, Shield, Star, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 
-// Simple Progress component replacement
+// Simple Progress component
 const Progress = ({ value, className }: { value: number; className?: string }) => (
-  <div className={`bg-gray-200 rounded-full overflow-hidden ${className}`}>
-    <div
+  <div className={`bg-gray-200 rounded-full overflow-hidden ${className || 'h-2'}`}>
+    <div 
       className="bg-blue-600 h-full transition-all duration-300"
       style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
     />
   </div>
 );
 
-const ReviewAnalysis = () => {
-  const [selectedAccommodation, setSelectedAccommodation] = useState('1');
+const CleanReviewAnalysis: React.FC = () => {
+  const [selectedAccommodation] = useState('1');
 
   // Mock review data with AI analysis
   const reviewData = {
@@ -308,4 +308,4 @@ const ReviewAnalysis = () => {
   );
 };
 
-export default ReviewAnalysis;
+export default CleanReviewAnalysis;

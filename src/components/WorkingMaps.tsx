@@ -1,3 +1,4 @@
+// Ensure google.maps types are available
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,8 +6,12 @@ import { MapPin, Navigation, Settings } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 declare global {
+  // Remove redeclaration of google if types are installed
+  // interface Window {
+  //   google: unknown;
+  //   initWorkingMaps: () => void;
+  // }
   interface Window {
-    google: typeof google;
     initWorkingMaps: () => void;
   }
 }
@@ -15,7 +20,7 @@ const WorkingMaps: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<unknown>(null);
 
   const loadGoogleMapsAPI = () => {
     return new Promise<void>((resolve, reject) => {

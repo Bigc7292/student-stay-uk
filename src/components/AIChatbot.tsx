@@ -145,8 +145,8 @@ const AIChatbot = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="h-[600px] flex flex-col">
+    <div className="h-full flex flex-col space-y-6">
+      <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -321,31 +321,25 @@ const AIChatbot = () => {
         </CardContent>
       </Card>
 
-      {/* Knowledge Categories */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BookOpen className="w-5 h-5 text-green-600" />
-            <span>What I Can Help With</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">Budgeting & Costs</h4>
-              <p className="text-sm text-blue-700">Rent prices, hidden costs, money-saving tips, and financial planning</p>
+      {/* Knowledge Categories - Compact for modal */}
+      <Card className="flex-shrink-0">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <BookOpen className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium">I can help with:</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="p-2 bg-blue-50 rounded text-center">
+              <p className="text-xs font-medium text-blue-800">Budgeting</p>
             </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">Legal Rights</h4>
-              <p className="text-sm text-green-700">Tenancy agreements, deposit protection, and landlord responsibilities</p>
+            <div className="p-2 bg-green-50 rounded text-center">
+              <p className="text-xs font-medium text-green-800">Legal Rights</p>
             </div>
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-2">Applications</h4>
-              <p className="text-sm text-purple-700">Required documents, guarantors, and application processes</p>
+            <div className="p-2 bg-purple-50 rounded text-center">
+              <p className="text-xs font-medium text-purple-800">Applications</p>
             </div>
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <h4 className="font-semibold text-orange-800 mb-2">Safety & Areas</h4>
-              <p className="text-sm text-orange-700">Safe neighborhoods, red flags to avoid, and area research tips</p>
+            <div className="p-2 bg-orange-50 rounded text-center">
+              <p className="text-xs font-medium text-orange-800">Safety</p>
             </div>
           </div>
         </CardContent>

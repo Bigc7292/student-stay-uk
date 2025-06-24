@@ -1,13 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { Search, MapPin, PoundSterling, Home, Bed, Filter, Shield, TrendingDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import EnhancedPropertyCard from '@/components/EnhancedPropertyCard';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { propertyDataUKService, type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { Bed, Grid, Home, List, MapPin, Search, Shield, TrendingDown } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface PropertySearchProps {
   onResults?: (properties: PropertyDataUKProperty[]) => void;
@@ -26,6 +28,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
   const [properties, setProperties] = useState<PropertyDataUKProperty[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleSearch = async () => {
     if (!filters.location.trim()) return;
@@ -66,10 +69,31 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
       // Sort by price
       allProperties.sort((a, b) => a.price - b.price);
 
-      setProperties(allProperties);
-      onResults?.(allProperties);
+      // Add mock local amenities data for enhanced display
+      const enhancedProperties = allProperties.map(property => ({
+        ...property,
+        image: property.images?.[0] || '/placeholder.svg',
+        rating: 4.2 + Math.random() * 0.8, // Mock rating between 4.2-5.0
+        viewingCount: Math.floor(Math.random() * 50) + 10,
+        savedCount: Math.floor(Math.random() * 20) + 5,
+        deposit: property.price * 4, // Typical 4 weeks deposit
+        bills: 'Bills included',
+        university: filters.location.includes('Manchester') ? 'University of Manchester' :
+                   filters.location.includes('London') ? 'UCL' : 'Local University',
+        commuteTime: Math.floor(Math.random() * 30) + 10,
+        localAmenities: [
+          { type: 'supermarket' as const, name: 'Tesco Express', distance: 200, walkTime: 3 },
+          { type: 'gym' as const, name: 'PureGym', distance: 500, walkTime: 6 },
+          { type: 'university' as const, name: 'Main Campus', distance: 800, walkTime: 10 },
+          { type: 'transport' as const, name: 'Bus Stop', distance: 100, walkTime: 2 },
+          { type: 'restaurant' as const, name: 'Local Cafe', distance: 150, walkTime: 2 }
+        ]
+      }));
 
-      console.log(`✅ Found ${allProperties.length} properties`);
+      setProperties(enhancedProperties);
+      onResults?.(enhancedProperties);
+
+      console.log(`✅ Found ${enhancedProperties.length} properties`);
     } catch (error) {
       console.error('❌ Search failed:', error);
     } finally {
@@ -236,21 +260,43 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
         </CardContent>
       </Card>
 
-      {/* Results */}
+      {/* Enhanced Results with Tabs */}
       {searched && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Search Results ({properties.length})</span>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center space-x-2">
+                <span>Search Results ({properties.length})</span>
+                {properties.length > 0 && (
+                  <Badge variant="outline" className="flex items-center space-x-1">
+                    <TrendingDown className="w-3 h-3" />
+                    <span>Sorted by price</span>
+                  </Badge>
+                )}
+              </CardTitle>
+
+              {/* View Mode Toggle */}
               {properties.length > 0 && (
-                <Badge variant="outline" className="flex items-center space-x-1">
-                  <TrendingDown className="w-3 h-3" />
-                  <span>Sorted by price</span>
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
-            </CardTitle>
+            </div>
           </CardHeader>
-          
+
           <CardContent>
             {loading ? (
               <div className="space-y-4">
@@ -269,65 +315,179 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
                 <p className="text-sm">Try adjusting your search criteria or different location</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {properties.map((property) => (
-                  <div key={property.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">{property.title}</h3>
-                        <div className="flex items-center text-gray-600 text-sm mt-1">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          {property.location} • {property.postcode}
+              <Tabs defaultValue="properties" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="properties" className="flex items-center space-x-2">
+                    <Home className="w-4 h-4" />
+                    <span>Properties</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="safety" className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4" />
+                    <span>Safety & Crime</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="amenities" className="flex items-center space-x-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>Local Amenities</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="properties" className="mt-6">
+                  {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {properties.map((property) => (
+                        <EnhancedPropertyCard
+                          key={property.id}
+                          property={property}
+                          onView={(id) => console.log('View property:', id)}
+                          onSave={(id) => console.log('Save property:', id)}
+                          onShare={(id) => console.log('Share property:', id)}
+                          showCrimeData={true}
+                          showLocalAmenities={true}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {properties.map((property) => (
+                        <div key={property.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="font-semibold text-lg">{property.title}</h3>
+                              <div className="flex items-center text-gray-600 text-sm mt-1">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {property.location} • {property.postcode}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-green-600">
+                                £{property.price}
+                              </div>
+                              <div className="text-sm text-gray-500">per {property.priceType}</div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-4 mb-3">
+                            <div className="flex items-center text-gray-600">
+                              <Bed className="w-4 h-4 mr-1" />
+                              <span className="text-sm">{property.bedrooms} bed</span>
+                            </div>
+                            <div className="flex items-center text-gray-600">
+                              <Home className="w-4 h-4 mr-1" />
+                              <span className="text-sm capitalize">{property.propertyType}</span>
+                            </div>
+                            {property.furnished && (
+                              <Badge variant="outline" className="text-xs">Furnished</Badge>
+                            )}
+                            {property.crimeData && (
+                              <Badge
+                                variant={getSafetyBadgeColor(property.crimeData.safetyScore)}
+                                className="flex items-center text-xs"
+                              >
+                                <Shield className="w-3 h-3 mr-1" />
+                                {property.crimeData.rating}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                            {property.description}
+                          </p>
+
+                          <div className="flex justify-between items-center">
+                            <div className="text-xs text-gray-500">
+                              {property.landlord?.verified && (
+                                <span className="text-green-600">✓ Verified Landlord</span>
+                              )}
+                            </div>
+                            <Button size="sm" onClick={() => console.log('View property:', property.id)}>
+                              View Details
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-green-600">
-                          £{property.price}
-                        </div>
-                        <div className="text-sm text-gray-500">per {property.priceType}</div>
-                      </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="safety" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Crime & Safety Information</h3>
+                      <p className="text-gray-600 text-sm">Safety ratings and crime statistics for properties in {filters.location}</p>
                     </div>
 
-                    <div className="flex items-center space-x-4 mb-3">
-                      <div className="flex items-center text-gray-600">
-                        <Bed className="w-4 h-4 mr-1" />
-                        <span className="text-sm">{property.bedrooms} bed</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Home className="w-4 h-4 mr-1" />
-                        <span className="text-sm capitalize">{property.propertyType}</span>
-                      </div>
-                      {property.furnished && (
-                        <Badge variant="outline" className="text-xs">Furnished</Badge>
-                      )}
-                      {property.crimeData && (
-                        <Badge 
-                          variant={getSafetyBadgeColor(property.crimeData.safetyScore)}
-                          className="flex items-center text-xs"
-                        >
-                          <Shield className="w-3 h-3 mr-1" />
-                          {property.crimeData.rating}
-                        </Badge>
-                      )}
-                    </div>
+                    {properties.filter(p => p.crimeData).map((property) => (
+                      <Card key={property.id} className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-medium">{property.title}</h4>
+                            <p className="text-sm text-gray-600">{property.location} • {property.postcode}</p>
+                          </div>
+                          <Badge
+                            className={`${property.crimeData?.safetyScore >= 80 ? 'bg-green-500' :
+                                       property.crimeData?.safetyScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'} text-white`}
+                          >
+                            {property.crimeData?.safetyScore}% Safe
+                          </Badge>
+                        </div>
 
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {property.description}
-                    </p>
-
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-gray-500">
-                        {property.landlord?.verified && (
-                          <span className="text-green-600">✓ Verified Landlord</span>
+                        {property.crimeData && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium">Crime Rating:</span>
+                              <p className="text-gray-600">{property.crimeData.rating}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Crimes per 1000:</span>
+                              <p className="text-gray-600">{property.crimeData.crimesPerThousand}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Safety Score:</span>
+                              <p className="text-gray-600">{property.crimeData.safetyScore}/100</p>
+                            </div>
+                          </div>
                         )}
-                      </div>
-                      <Button size="sm">
-                        View Details
-                      </Button>
-                    </div>
+                      </Card>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </TabsContent>
+
+                <TabsContent value="amenities" className="mt-6">
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Local Amenities</h3>
+                      <p className="text-gray-600 text-sm">Nearby supermarkets, gyms, transport, and other facilities</p>
+                    </div>
+
+                    {properties.filter(p => p.localAmenities?.length > 0).map((property) => (
+                      <Card key={property.id} className="p-4">
+                        <div className="mb-4">
+                          <h4 className="font-medium">{property.title}</h4>
+                          <p className="text-sm text-gray-600">{property.location} • {property.postcode}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {property.localAmenities?.map((amenity, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-6 h-6 flex items-center justify-center">
+                                  {amenity.type === 'supermarket' && '🛒'}
+                                  {amenity.type === 'gym' && '💪'}
+                                  {amenity.type === 'university' && '🎓'}
+                                  {amenity.type === 'transport' && '🚌'}
+                                  {amenity.type === 'restaurant' && '🍽️'}
+                                </div>
+                                <span className="text-sm font-medium">{amenity.name}</span>
+                              </div>
+                              <span className="text-xs text-gray-500">{amenity.walkTime} min walk</span>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
             )}
           </CardContent>
         </Card>

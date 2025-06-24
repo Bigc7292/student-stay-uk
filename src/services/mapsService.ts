@@ -4,13 +4,13 @@ export interface MapLocation {
   lng: number;
   name: string;
   type: 'university' | 'accommodation' | 'amenity';
-  details?: any;
+  details?: unknown;
 }
 
 export interface RouteInfo {
   distance: string;
   duration: string;
-  steps: any[];
+  steps: google.maps.DirectionsStep[];
 }
 
 // Define Coordinates interface
@@ -20,13 +20,13 @@ export interface Coordinates {
 }
 
 class MapsService {
-  private apiKey: string = 's4fm_2SM8Kly196qcszrM-FX9IM=';
+  private apiKey: string = '';
   private isMapLoaded: boolean = false;
   private loadPromise: Promise<void> | null = null;
 
   constructor() {
-    // Set the API key provided by the user
-    this.apiKey = 's4fm_2SM8Kly196qcszrM-FX9IM=';
+    // Load API key from environment variable if available
+    this.apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   }
 
   // Set API key (users can add their own free Google Maps API key)
@@ -85,7 +85,7 @@ Free tier includes 28,000 map loads per month!`;
       script.async = true;
       script.defer = true;
 
-      (window as any).initGoogleMaps = () => {
+      (window as unknown as { initGoogleMaps: () => void }).initGoogleMaps = () => {
         this.isMapLoaded = true;
         resolve();
       };
@@ -101,12 +101,11 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Create map instance
-  createMap(element: HTMLElement, options: any = {}): any {
+  createMap(element: HTMLElement, options: google.maps.MapOptions = {}): google.maps.Map {
     if (!window.google) {
       throw new Error('Google Maps not loaded');
     }
-
-    const defaultOptions = {
+    const defaultOptions: google.maps.MapOptions = {
       center: { lat: 54.7023, lng: -3.2765 }, // UK center
       zoom: 6,
       mapTypeControl: true,
@@ -115,43 +114,37 @@ Free tier includes 28,000 map loads per month!`;
       zoomControl: true,
       ...options
     };
-
     return new window.google.maps.Map(element, defaultOptions);
   }
 
   // Create marker
-  createMarker(map: any, location: MapLocation, options: any = {}): any {
+  createMarker(map: google.maps.Map, location: MapLocation, options: google.maps.MarkerOptions = {}): google.maps.Marker | null {
     if (!window.google) return null;
-
-    const defaultOptions = {
+    const defaultOptions: google.maps.MarkerOptions = {
       position: { lat: location.lat, lng: location.lng },
       map: map,
       title: location.name,
       ...options
     };
-
     return new window.google.maps.Marker(defaultOptions);
   }
 
   // Search nearby places
   async searchNearbyPlaces(
-    map: any, 
-    center: { lat: number; lng: number }, 
-    type: string, 
+    map: google.maps.Map,
+    center: { lat: number; lng: number },
+    type: string,
     radius: number = 1000
-  ): Promise<any[]> {
+  ): Promise<google.maps.places.PlaceResult[]> {
     if (!window.google) return [];
-
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(map);
-      
-      const request = {
+      const request: google.maps.places.PlaceSearchRequest = {
         location: center,
         radius: radius,
-        type: type
+        type: type as string // Google Maps expects string or string[]
       };
-
-      service.nearbySearch(request, (results: any[], status: any) => {
+      service.nearbySearch(request, (results: google.maps.places.PlaceResult[] | null, status: google.maps.places.PlacesServiceStatus) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
           resolve(results);
         } else {
@@ -165,25 +158,22 @@ Free tier includes 28,000 map loads per month!`;
   async calculateRoute(
     start: { lat: number; lng: number },
     end: { lat: number; lng: number },
-    travelMode: string = 'WALKING'
+    travelMode: google.maps.TravelMode = google.maps.TravelMode.WALKING
   ): Promise<RouteInfo | null> {
     if (!window.google) return null;
-
     return new Promise((resolve) => {
       const directionsService = new window.google.maps.DirectionsService();
-      
-      const request = {
+      const request: google.maps.DirectionsRequest = {
         origin: start,
         destination: end,
-        travelMode: (window.google.maps.TravelMode as any)[travelMode]
+        travelMode: travelMode
       };
-
-      directionsService.route(request, (result: any, status: any) => {
+      directionsService.route(request, (result: google.maps.DirectionsResult, status: google.maps.DirectionsStatus) => {
         if (status === 'OK' && result.routes.length > 0) {
           const route = result.routes[0].legs[0];
           resolve({
-            distance: route.distance.text,
-            duration: route.duration.text,
+            distance: route.distance?.text || '',
+            duration: route.duration?.text || '',
             steps: route.steps
           });
         } else {
@@ -194,18 +184,16 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Get place details
-  async getPlaceDetails(placeId: string): Promise<any> {
+  async getPlaceDetails(placeId: string): Promise<google.maps.places.PlaceResult | null> {
     if (!window.google) return null;
-
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(
         document.createElement('div')
       );
-
       service.getDetails(
         { placeId: placeId },
-        (place: any, status: any) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+        (place: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
             resolve(place);
           } else {
             resolve(null);
@@ -218,12 +206,10 @@ Free tier includes 28,000 map loads per month!`;
   // Geocode address
   async geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
     if (!window.google) return null;
-
     return new Promise((resolve) => {
       const geocoder = new window.google.maps.Geocoder();
-      
-      geocoder.geocode({ address: address }, (results: any[], status: any) => {
-        if (status === 'OK' && results.length > 0) {
+      geocoder.geocode({ address: address }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
+        if (status === 'OK' && results && results.length > 0) {
           const location = results[0].geometry.location;
           resolve({
             lat: location.lat(),
@@ -237,23 +223,20 @@ Free tier includes 28,000 map loads per month!`;
   }
 
   // Create info window
-  createInfoWindow(content: string): any {
+  createInfoWindow(content: string): google.maps.InfoWindow | null {
     if (!window.google) return null;
-
     return new window.google.maps.InfoWindow({
       content: content
     });
   }
 
   // Create directions renderer
-  createDirectionsRenderer(map: any, options: any = {}): any {
+  createDirectionsRenderer(map: google.maps.Map, options: google.maps.DirectionsRendererOptions = {}): google.maps.DirectionsRenderer | null {
     if (!window.google) return null;
-
     const renderer = new window.google.maps.DirectionsRenderer({
       draggable: true,
       ...options
     });
-
     renderer.setMap(map);
     return renderer;
   }
@@ -262,18 +245,15 @@ Free tier includes 28,000 map loads per month!`;
   async calculateMultipleRoutes(
     origin: Coordinates,
     destinations: Array<{ name: string; coordinates: Coordinates; type: string }>,
-    travelMode: 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT' = 'WALKING'
-  ): Promise<Array<{ destination: any; route: RouteInfo | null }>> {
-    const results = [];
-
+    travelMode: google.maps.TravelMode = google.maps.TravelMode.WALKING
+  ): Promise<Array<{ destination: { name: string; coordinates: Coordinates; type: string }; route: RouteInfo | null }>> {
+    const results: Array<{ destination: { name: string; coordinates: Coordinates; type: string }; route: RouteInfo | null }> = [];
     for (const destination of destinations) {
       const route = await this.calculateRoute(origin, destination.coordinates, travelMode);
       results.push({ destination, route });
-
       // Add small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-
     return results;
   }
 
@@ -286,19 +266,16 @@ Free tier includes 28,000 map loads per month!`;
     if (!this.isLoaded() || !window.google) {
       return [];
     }
-
     return new Promise((resolve) => {
       const service = new window.google.maps.places.PlacesService(
         document.createElement('div')
       );
-
-      const request = {
+      const request: google.maps.places.PlaceSearchRequest = {
         location: new window.google.maps.LatLng(location.lat, location.lng),
         radius: radius,
-        type: type
+        type: type as string
       };
-
-      service.nearbySearch(request, (results: any[], status: any) => {
+      service.nearbySearch(request, (results: google.maps.places.PlaceResult[] | null, status: google.maps.places.PlacesServiceStatus) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
           const places = results.slice(0, 5).map(place => ({
             name: place.name,

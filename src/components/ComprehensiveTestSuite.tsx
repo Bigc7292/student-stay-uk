@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Loader, AlertTriangle, Play, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, CheckCircle, Loader, Play, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import styles from './ComprehensiveTestSuite.module.css';
 
 interface TestResult {
   category: string;
@@ -408,8 +409,8 @@ const ComprehensiveTestSuite: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(completedTests / totalTests) * 100}%` }}
+                  className={styles.progressBar}
+                  style={{ ['--progress-width' as keyof React.CSSProperties]: `${(completedTests / totalTests) * 100}%` } as React.CSSProperties}
                 />
               </div>
               {currentTest && (

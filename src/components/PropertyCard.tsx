@@ -1,15 +1,38 @@
 
-import React from 'react';
-import { MapPin, Star, Wifi, Car, Home, Clock, Heart, Share2, Eye } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+    Car,
+    Clock,
+    Eye,
+    Heart,
+    Home,
+    MapPin,
+    Share2,
+    Star,
+    Wifi
+} from 'lucide-react';
+
+interface CrimeData {
+  rating: string;
+  crimesPerThousand: number;
+  safetyScore: number;
+}
+
+interface LocalAmenity {
+  type: 'supermarket' | 'gym' | 'university' | 'transport' | 'hospital' | 'restaurant';
+  name: string;
+  distance: number; // in meters
+  walkTime: number; // in minutes
+}
 
 interface Property {
-  id: number;
+  id: number | string;
   title: string;
   price: number;
   location: string;
+  postcode?: string;
   image: string;
   amenities: string[];
   rating: number;
@@ -24,6 +47,10 @@ interface Property {
   savedCount: number;
   isNew?: boolean;
   virtualTour?: boolean;
+  crimeData?: CrimeData;
+  localAmenities?: LocalAmenity[];
+  bedrooms?: number;
+  bathrooms?: number;
 }
 
 interface PropertyCardProps {
