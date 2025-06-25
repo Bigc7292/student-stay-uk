@@ -1,11 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, MessageSquare, User, Settings, Globe, Brain, Database } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MessageSquare, Mic, MicOff } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import './AvatarAssistant.css';
 
 interface Message {
   id: string;
@@ -35,6 +32,14 @@ interface KnowledgeBaseEntry {
   transport: string;
 }
 
+// Try multiple Ready Player Me URLs for better compatibility
+const READY_PLAYER_ME_URLS = [
+  "https://demo.readyplayer.me/avatar?frameApi=1&clearColor=ffffff&cameraInitialDistance=3&cameraTarget=0,0.65,0.15&modelSrc=https://models.readyplayer.me/685c1ff416e8b16f5efbfcf8.glb",
+  "https://render.readyplayer.me/685c1ff416e8b16f5efbfcf8.glb",
+  "https://models.readyplayer.me/685c1ff416e8b16f5efbfcf8.glb"
+];
+const READY_PLAYER_ME_AVATAR_URL = READY_PLAYER_ME_URLS[0];
+
 const AvatarAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -45,11 +50,14 @@ const AvatarAssistant = () => {
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false); // State to manage chat window
 
+  // Add missing refs
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  // Use correct type for SpeechRecognition
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  
   const languages: Language[] = [
     { code: 'en', name: 'English', voice: 'en-US', flag: '🇺🇸' },
     { code: 'es', name: 'Spanish', voice: 'es-ES', flag: '🇪🇸' },
@@ -64,7 +72,7 @@ const AvatarAssistant = () => {
   ];
 
   // Enhanced knowledge base with comprehensive student accommodation information
-  const knowledgeBase: Record<string, KnowledgeBaseEntry> = {
+  const knowledgeBase = useMemo<Record<string, KnowledgeBaseEntry>>(() => ({
     en: {
       greeting: "Hello! I'm your AI Digital Avatar Assistant with comprehensive knowledge of UK student accommodation. I can help you in multiple languages with finding housing, understanding tenant rights, budgeting, legal advice, university information, and much more. I have access to real-time data and can assist with complex queries. How can I help you today?",
       budget: "For UK student accommodation budgeting: London typically costs £600-1200/month, Manchester £400-700/month, Birmingham £350-600/month, Leeds £300-550/month, Bristol £450-800/month. Consider bills (£40-80/month), council tax (usually exempt for full-time students), deposit (typically 1-6 weeks rent), and additional costs like contents insurance (£5-15/month).",
@@ -89,7 +97,7 @@ const AvatarAssistant = () => {
       insurance: "El seguro de alojamiento estudiantil cubre: Pertenencias personales, responsabilidad pública, daños accidentales a la propiedad del propietario.",
       transport: "Consideraciones de transporte: Verificar conexiones de autobús/tren a la universidad, investigar esquemas de descuento estudiantil, considerar infraestructura ciclista."
     }
-  };
+  }), []);
 
   // API simulation for real-time data
   const simulateAPICall = async (query: string, language: string) => {
@@ -167,17 +175,17 @@ const AvatarAssistant = () => {
       synthRef.current = window.speechSynthesis;
     }
 
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
+    // Polyfill for SpeechRecognition (browser only)
+    const SpeechRecognitionCtor = (window as Window & { SpeechRecognition?: new () => MinimalSpeechRecognition; webkitSpeechRecognition?: new () => MinimalSpeechRecognition; }).SpeechRecognition ||
+      (window as Window & { SpeechRecognition?: new () => MinimalSpeechRecognition; webkitSpeechRecognition?: new () => MinimalSpeechRecognition; }).webkitSpeechRecognition;
+    recognitionRef.current = SpeechRecognitionCtor ? new SpeechRecognitionCtor() : null;
+    if (recognitionRef.current) {
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = (event: BrowserSpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         handleVoiceInput(transcript);
       };
-
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
@@ -197,7 +205,7 @@ const AvatarAssistant = () => {
         synthRef.current.cancel();
       }
     };
-  }, []);
+  }, [currentLanguage, knowledgeBase]);
 
   useEffect(() => {
     scrollToBottom();
@@ -316,249 +324,124 @@ const AvatarAssistant = () => {
 
   const currentLang = languages.find(lang => lang.code === currentLanguage) || languages[0];
 
+  // Only render the floating avatar button if chat is closed
+  if (!isChatOpen) {
+    return (
+      <button
+        className="avatar-assistant-fab"
+        aria-label="Open AI Assistant"
+        onClick={() => {
+          console.log('Avatar clicked! Opening chat...');
+          setIsChatOpen(true);
+        }}
+      >
+        {/* Simple bouncy emoji avatar - reliable and fun! */}
+        <div className="bouncy-avatar">
+          🤖
+        </div>
+        {isSpeaking && (
+          <div className="avatar-assistant-talking">
+            Talking...
+          </div>
+        )}
+      </button>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar className={`w-12 h-12 transition-all duration-300 ${isAvatarActive ? 'ring-4 ring-blue-400 ring-opacity-50 scale-110' : ''}`}>
-                  <AvatarImage src="/api/placeholder/150/150" />
-                  <AvatarFallback className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white ${isSpeaking ? 'animate-pulse' : ''}`}>
-                    AI
-                  </AvatarFallback>
-                </Avatar>
-                {isSpeaking && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                )}
-                {isProcessing && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full animate-spin"></div>
-                )}
-              </div>
-              <div>
-                <h3 className="font-bold">Enhanced AI Digital Avatar Assistant</h3>
-                <p className="text-sm text-gray-600">Multilingual Student Housing Expert with Comprehensive Knowledge Base</p>
+    <div className="avatar-assistant-chat-modal">
+      <div className="avatar-assistant-chat-header">
+        <div className="avatar-assistant-chat-header-left">
+          <div className="chat-header-avatar">
+            🤖
+          </div>
+          <span className="avatar-assistant-chat-header-title">AI Assistant</span>
+        </div>
+        <button onClick={() => setIsChatOpen(false)} aria-label="Close chat" className="avatar-assistant-chat-close">&times;</button>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto space-y-4 p-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                message.isUser
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              <p className="text-sm">{message.content}</p>
+              <p className={`text-xs mt-1 ${
+                message.isUser ? 'text-blue-100' : 'text-gray-500'
+              }`}>
+                {message.timestamp.toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </p>
+            </div>
+          </div>
+        ))}
+        {isProcessing && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 rounded-lg px-4 py-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                <span>{currentLang.flag}</span>
-                <span>{currentLang.name}</span>
-              </Badge>
-              <Badge variant={isSpeaking ? "default" : isProcessing ? "secondary" : "outline"}>
-                {isSpeaking ? "Speaking" : isProcessing ? "Processing" : "Ready"}
-              </Badge>
-            </div>
-          </CardTitle>
-        </CardHeader>
-      </Card>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card className="h-[500px] flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">AI Conversation</h4>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsMuted(!isMuted)}
-                  >
-                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  </Button>
-                  <Badge variant="outline" className="flex items-center space-x-1">
-                    <Brain className="w-3 h-3" />
-                    <span>AI Powered</span>
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                        message.isUser
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
-                        message.isUser ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="bg-gray-100 rounded-lg px-4 py-2">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="flex space-x-2">
-                <Input
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !isProcessing && handleSendMessage()}
-                  placeholder={`Ask me anything about student accommodation in ${currentLang.name}...`}
-                  className="flex-1"
-                  disabled={isProcessing}
-                />
-                <Button
-                  variant={isListening ? "destructive" : "outline"}
-                  size="sm"
-                  onClick={isListening ? stopListening : startListening}
-                  disabled={!recognitionRef.current || isProcessing}
-                >
-                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </Button>
-                <Button 
-                  onClick={handleSendMessage} 
-                  disabled={!inputMessage.trim() || isProcessing}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="w-5 h-5" />
-                <span>Language & Settings</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Select Language</label>
-                <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        <div className="flex items-center space-x-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Voice Volume</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Database className="w-5 h-5" />
-                <span>Knowledge Base Topics</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { text: "Budget & Costs", key: "budget", icon: "💰" },
-                { text: "Legal Rights", key: "legal", icon: "⚖️" },
-                { text: "Required Documents", key: "documents", icon: "📄" },
-                { text: "University Information", key: "universities", icon: "🎓" },
-                { text: "Safety & Security", key: "safety", icon: "🔒" },
-                { text: "International Students", key: "international", icon: "🌍" },
-                { text: "Maintenance Issues", key: "maintenance", icon: "🔧" },
-                { text: "Insurance Coverage", key: "insurance", icon: "🛡️" },
-                { text: "Transport & Commute", key: "transport", icon: "🚌" }
-              ].map((topic) => (
-                <Button
-                  key={topic.key}
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start text-left"
-                  onClick={() => setInputMessage(`Tell me about ${topic.text.toLowerCase()}`)}
-                  disabled={isProcessing}
-                >
-                  <span className="mr-2">{topic.icon}</span>
-                  {topic.text}
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">System Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Speech Recognition:</span>
-                  <Badge variant={recognitionRef.current ? "default" : "secondary"}>
-                    {recognitionRef.current ? "Available" : "Not Supported"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span>Text-to-Speech:</span>
-                  <Badge variant={synthRef.current ? "default" : "secondary"}>
-                    {synthRef.current ? "Available" : "Not Supported"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span>Knowledge Base:</span>
-                  <Badge variant="default">Comprehensive</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span>API Status:</span>
-                  <Badge variant="default">Connected</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span>Languages:</span>
-                  <Badge variant="default">{languages.length} Available</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="avatar-assistant-chat-input-row">
+        <Input
+          value={inputMessage}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputMessage(e.target.value)}
+          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !isProcessing && handleSendMessage()}
+          placeholder={`Ask me anything about student accommodation in ${currentLang.name}...`}
+          className="flex-1"
+          disabled={isProcessing}
+        />
+        <Button
+          variant={isListening ? "destructive" : "outline"}
+          size="sm"
+          onClick={isListening ? stopListening : startListening}
+          disabled={!recognitionRef.current || isProcessing}
+        >
+          {isListening ? (<MicOff className="w-4 h-4" />) : (<Mic className="w-4 h-4" />)}
+        </Button>
+        <Button 
+          onClick={handleSendMessage} 
+          disabled={!inputMessage.trim() || isProcessing}
+        >
+          <MessageSquare className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );
 };
 
 export default AvatarAssistant;
+
+// Minimal fallback types for browsers without TS lib dom support
+interface MinimalSpeechRecognition {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: MinimalSpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+interface MinimalSpeechRecognitionEvent extends Event {
+  results: Array<Array<{ transcript: string }>>;
+}
+
+type BrowserSpeechRecognition = MinimalSpeechRecognition;
+type BrowserSpeechRecognitionEvent = MinimalSpeechRecognitionEvent;

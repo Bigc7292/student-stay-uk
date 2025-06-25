@@ -48,27 +48,9 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
         const randomizedProperties = allProperties.sort(() => Math.random() - 0.5);
         setProperties(randomizedProperties);
       } else {
-        // For home page carousel, use Bright Data Zoopla for multi-city display
-        console.log('🌍 Loading properties from multiple UK cities via Bright Data Zoopla...');
-
-        try {
-          // Import Bright Data Zoopla service dynamically
-          const { brightDataZooplaService } = await import('../services/brightDataZooplaService');
-
-          // Search multiple cities at once
-          const zooplaProperties = await brightDataZooplaService.searchMultipleCities(majorCities);
-
-          if (zooplaProperties.length > 0) {
-            console.log(`✅ Loaded ${zooplaProperties.length} real Zoopla properties from multiple cities`);
-            setProperties(zooplaProperties.slice(0, maxProperties));
-          } else {
-            console.log('⚠️ No Zoopla properties found, falling back to market data...');
-            await loadFallbackProperties(majorCities);
-          }
-        } catch (zooplaError) {
-          console.error('❌ Bright Data Zoopla failed, using fallback:', zooplaError);
-          await loadFallbackProperties(majorCities);
-        }
+        // For home page carousel, use Supabase database for multi-city display
+        console.log('🌍 Loading properties from multiple UK cities via Supabase...');
+        await loadFallbackProperties(majorCities);
       }
     } catch (error) {
       console.error('Failed to load properties:', error);
@@ -87,38 +69,66 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
       const randomizedCities = cities.sort(() => Math.random() - 0.5);
       const citiesToUse = randomizedCities.slice(0, Math.floor(Math.random() * 3) + 4); // 4-6 cities randomly
 
-      for (const city of citiesToUse) {
-        try {
-          // Search database for properties in this city
-          const searchFilters: PropertySearchFilters = {
-            location: city,
-            maxPrice: 800,
-            available: true,
-            limit: 2 // 2 per city for diversity
-          };
+      // First, try to get properties with images from any location
+      try {
+        console.log('🌍 Getting diverse properties with images from any location...');
 
-          const cityProperties = await supabasePropertyService.searchProperties(searchFilters);
+        const generalSearchFilters: PropertySearchFilters = {
+          maxPrice: 800,
+          available: true,
+          limit: maxProperties * 2 // Get more to ensure variety
+        };
 
-          console.log(`🏙️ ${city}: Found ${cityProperties.length} properties`);
-          cityProperties.forEach((prop, idx) => {
-            if (idx < 2) { // Only log first 2
-              console.log(`   ${prop.title} - Images: ${prop.images?.length || 0}`);
-            }
+        const allAvailableProperties = await supabasePropertyService.searchProperties(generalSearchFilters);
+
+        if (allAvailableProperties.length > 0) {
+          console.log(`✅ Found ${allAvailableProperties.length} properties with images`);
+
+          // Group by location to ensure diversity
+          const propertiesByLocation = allAvailableProperties.reduce((acc, prop) => {
+            const location = prop.location || 'Unknown';
+            if (!acc[location]) acc[location] = [];
+            acc[location].push(prop);
+            return acc;
+          }, {} as Record<string, typeof allAvailableProperties>);
+
+          // Take 1-2 properties from each location for variety
+          const diverseProperties: typeof allAvailableProperties = [];
+          Object.entries(propertiesByLocation).forEach(([location, props]) => {
+            const propsToTake = Math.min(2, props.length);
+            diverseProperties.push(...props.slice(0, propsToTake));
           });
 
-          // Add source city for tracking
-          const propertiesWithSource = cityProperties.map(prop => ({
-            ...prop,
-            sourceCity: city
-          }));
+          // Shuffle and limit
+          const shuffledProperties = diverseProperties
+            .sort(() => Math.random() - 0.5)
+            .slice(0, maxProperties);
 
-          allProperties.push(...propertiesWithSource);
+          allProperties.push(...shuffledProperties);
+          console.log(`✅ Selected ${shuffledProperties.length} diverse properties from ${Object.keys(propertiesByLocation).length} locations`);
+        }
+      } catch (generalError) {
+        console.warn('Failed to load general properties, trying city-specific search:', generalError);
 
-          // If we have enough properties, break early
-          if (allProperties.length >= maxProperties) break;
-        } catch (cityError) {
-          console.warn(`Failed to load properties from ${city}:`, cityError);
-          continue; // Try next city
+        // Fallback to city-specific search
+        for (const city of citiesToUse) {
+          try {
+            const searchFilters: PropertySearchFilters = {
+              location: city,
+              maxPrice: 800,
+              available: true,
+              limit: 2
+            };
+
+            const cityProperties = await supabasePropertyService.searchProperties(searchFilters);
+            console.log(`🏙️ ${city}: Found ${cityProperties.length} properties`);
+
+            allProperties.push(...cityProperties);
+            if (allProperties.length >= maxProperties) break;
+          } catch (cityError) {
+            console.warn(`Failed to load properties from ${city}:`, cityError);
+            continue;
+          }
         }
       }
 
@@ -239,7 +249,8 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
         <div className="grid md:grid-cols-2 min-h-[400px]">
           {/* Image Section */}
           <div className="relative overflow-hidden">
-            {currentProperty.images && currentProperty.images.length > 0 ? (
+
+            {currentProperty.images && currentProperty.images.length > 0 && currentProperty.images[0] && currentProperty.images[0].trim() !== '' ? (
               <img
                 src={currentProperty.images[0]}
                 alt={currentProperty.title}
@@ -248,11 +259,15 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
                   console.log('✅ Carousel image loaded:', currentProperty.images[0]);
                 }}
                 onError={(e) => {
-                  console.log('❌ Carousel image failed:', currentProperty.images[0]);
+                  console.log('❌ Carousel image failed to load:', currentProperty.images[0]);
+                  console.log('❌ Property:', currentProperty.title, 'Location:', currentProperty.location);
                   // Fallback to "No Photos Available" if real image fails to load
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
-                  target.parentElement!.innerHTML = `
+
+                  // Check if parentElement exists before setting innerHTML
+                  if (target.parentElement) {
+                    target.parentElement.innerHTML = `
                     <div class="bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center h-full">
                       <div class="text-center p-8">
                         <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -265,6 +280,7 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
                       </div>
                     </div>
                   `;
+                  }
                 }}
               />
             ) : (
@@ -356,7 +372,14 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
 
             {/* Action Button */}
             <div className="flex justify-between items-center">
-              <Button className="flex-1 mr-2">
+              <Button
+                className="flex-1 mr-2"
+                onClick={() => {
+                  console.log('View Details clicked for property:', currentProperty.id);
+                  // TODO: Open property details modal or navigate to property page
+                  alert(`Property Details for: ${currentProperty.title}\n\nPrice: £${currentProperty.price}/week\nLocation: ${currentProperty.location}\n\nThis will open a detailed view in the future!`);
+                }}
+              >
                 View Details
               </Button>
               <Button variant="outline" size="icon" aria-label="Show property trends" title="Show property trends">
@@ -372,6 +395,7 @@ const PropertyCarousel = ({ location, maxProperties = 6 }: PropertyCarouselProps
             {properties.map((_, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => setCurrentIndex(index)}
                 className={`w-2 h-2 rounded-full transition-colors ${
                   index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'

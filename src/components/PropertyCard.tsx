@@ -3,15 +3,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Car,
-    Clock,
-    Eye,
-    Heart,
-    Home,
-    MapPin,
-    Share2,
-    Star,
-    Wifi
+  Car,
+  Clock,
+  Eye,
+  Heart,
+  Home,
+  MapPin,
+  Share2,
+  Star,
+  Wifi
 } from 'lucide-react';
 
 interface CrimeData {
@@ -100,7 +100,7 @@ const PropertyCard = ({ property, onView, onSave, onShare, isSaved = false }: Pr
             size="sm"
             variant="secondary"
             className="w-8 h-8 p-0"
-            onClick={() => onSave(property.id)}
+            onClick={() => onSave(Number(property.id))}
           >
             <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
           </Button>
@@ -108,7 +108,7 @@ const PropertyCard = ({ property, onView, onSave, onShare, isSaved = false }: Pr
             size="sm"
             variant="secondary"
             className="w-8 h-8 p-0"
-            onClick={() => onShare(property.id)}
+            onClick={() => onShare(Number(property.id))}
           >
             <Share2 className="w-4 h-4" />
           </Button>
@@ -172,7 +172,7 @@ const PropertyCard = ({ property, onView, onSave, onShare, isSaved = false }: Pr
         <Button 
           className="w-full" 
           disabled={!property.available}
-          onClick={() => onView(property.id)}
+          onClick={() => onView(Number(property.id))}
         >
           {property.available ? 'View Details' : 'Join Waitlist'}
         </Button>

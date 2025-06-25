@@ -1,7 +1,5 @@
-
 // Import the actual service instances instead of classes
-import { openRentService } from './openRentService';
-import { rightmoveService } from './rightmoveService';
+import { mockProperties as allMockProperties } from '../data/mockData';
 
 interface Property {
   id: string;
@@ -66,44 +64,42 @@ export class PropertyAggregatorService {
     };
 
     try {
-      // Use mock data for demonstration since we don't have real API keys
-      const mockProperties: Property[] = [
-        {
-          id: 'prop1',
-          title: 'Modern Student Studio',
-          location: searchParams.location,
-          price: Math.min(searchParams.maxPrice - 100, 800),
-          propertyType: 'studio',
-          bedrooms: 1,
-          bathrooms: 1,
-          images: ['/placeholder.svg'],
-          description: 'A modern studio perfect for students',
-          amenities: ['WiFi', 'Furnished', 'Bills Included'],
-          source: 'OpenRent',
-          url: '#'
-        },
-        {
-          id: 'prop2',
-          title: 'Shared House Room',
-          location: searchParams.location,
-          price: Math.min(searchParams.maxPrice - 200, 600),
-          propertyType: 'shared',
-          bedrooms: 1,
-          bathrooms: 1,
-          images: ['/placeholder.svg'],
-          description: 'Comfortable room in shared house',
-          amenities: ['WiFi', 'Garden', 'Near Transport'],
-          source: 'Rightmove',
-          url: '#'
-        }
-      ];
+      // Filter mock properties by location and other filters
+      const filteredProperties: Property[] = allMockProperties
+        .filter((prop) => {
+          // Location match (case-insensitive, partial match)
+          const locationMatch = searchParams.location
+            ? prop.location.toLowerCase().includes(searchParams.location.toLowerCase())
+            : true;
+          // Price range
+          const priceMatch =
+            (typeof searchParams.minPrice === 'number' ? prop.price >= searchParams.minPrice : true) &&
+            (typeof searchParams.maxPrice === 'number' ? prop.price <= searchParams.maxPrice : true);
+          // Bedrooms
+          const bedroomsMatch = searchParams.bedrooms ? prop.bedrooms >= searchParams.bedrooms : true;
+          // Furnished (if specified)
+          const furnishedMatch =
+            typeof searchParams.furnished === 'boolean' ? prop.amenities.includes('Furnished') === searchParams.furnished : true;
+          // Property type
+          const propertyTypeMatch = searchFilters.propertyType
+            ? prop.propertyType.toLowerCase().includes(searchFilters.propertyType)
+            : true;
+          return locationMatch && priceMatch && bedroomsMatch && furnishedMatch && propertyTypeMatch;
+        })
+        .map((prop) => ({
+          ...prop,
+          id: String(prop.id),
+          images: prop.photos || [prop.image],
+          source: 'MockData',
+          url: '#',
+        }));
 
       return {
-        properties: mockProperties,
-        total: mockProperties.length,
+        properties: filteredProperties,
+        total: filteredProperties.length,
         page: 1,
         hasMore: false,
-        sources: ['OpenRent', 'Rightmove'],
+        sources: ['MockData'],
         searchTime: Date.now() - startTime
       };
     } catch (error) {

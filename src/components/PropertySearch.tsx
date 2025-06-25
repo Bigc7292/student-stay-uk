@@ -1,4 +1,3 @@
-
 import EnhancedPropertyCard from '@/components/EnhancedPropertyCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type PropertyDataUKProperty } from '@/services/propertyDataUKService';
+import { supabasePropertyService } from '@/services/supabasePropertyService';
 import { Bed, Grid, Home, List, MapPin, Search, Shield, TrendingDown } from 'lucide-react';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface PropertySearchProps {
   onResults?: (properties: PropertyDataUKProperty[]) => void;
@@ -29,6 +30,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
     if (!filters.location.trim()) return;
@@ -323,7 +325,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
                         <EnhancedPropertyCard
                           key={property.id}
                           property={property}
-                          onView={(id) => console.log('View property:', id)}
+                          onView={(id) => navigate(`/property/${id}`)}
                           onSave={(id) => console.log('Save property:', id)}
                           onShare={(id) => console.log('Share property:', id)}
                           showCrimeData={true}
@@ -384,7 +386,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
                                 <span className="text-green-600">✓ Verified Landlord</span>
                               )}
                             </div>
-                            <Button size="sm" onClick={() => console.log('View property:', property.id)}>
+                            <Button size="sm" onClick={() => navigate(`/property/${property.id}`)}>
                               View Details
                             </Button>
                           </div>

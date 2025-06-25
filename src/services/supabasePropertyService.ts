@@ -76,8 +76,12 @@ class SupabasePropertyService {
 
       // Apply filters
       if (filters.location) {
+        // Always log the location filter
+        console.log('📍 Applying location filter:', filters.location);
         // Search in location, full_address, and postcode
         query = query.or(`location.ilike.%${filters.location}%,full_address.ilike.%${filters.location}%,postcode.ilike.%${filters.location}%`);
+      } else {
+        console.log('⚠️ No location filter applied');
       }
 
       if (filters.minPrice) {
@@ -137,9 +141,28 @@ class SupabasePropertyService {
       const offset = filters.offset || 0;
       query = query.range(offset, offset + limit - 1);
 
+      // Strategy: First try to get properties with images, then fallback if needed
+      console.log('🔍 Executing property search query...');
+
+      // Get property IDs that have images
+      const { data: imageRefs } = await supabase
+        .from('property_images')
+        .select('property_id');
+
+      const propertyIdsWithImages = [...new Set(imageRefs?.map(img => img.property_id) || [])];
+      console.log(`📸 Found ${propertyIdsWithImages.length} properties with images`);
+
+      // First attempt: try to find properties with images that match criteria
+      if (propertyIdsWithImages.length > 0) {
+        query = query.in('id', propertyIdsWithImages);
+      }
+
       // Order by relevance (price, then created_at)
       query = query.order('price', { ascending: true });
       query = query.order('created_at', { ascending: false });
+
+      // Before executing, log the query object (for debugging)
+      console.log('🛠️ Final Supabase query object:', query);
 
       const { data, error } = await query;
 
@@ -148,10 +171,72 @@ class SupabasePropertyService {
         throw error;
       }
 
-      console.log(`✅ Found ${data?.length || 0} properties in Supabase`);
+      console.log(`✅ Found ${data?.length || 0} properties in Supabase (prioritizing those with images)`);
+      if (data && data.length > 0) {
+        console.log('🔎 First property returned:', data[0]);
+      }
 
-      // Transform to frontend format
-      return (data || []).map(this.transformToFrontendProperty);
+      // If no properties found with images for the specific location,
+      // try to get properties with images from any location (better than no images)
+      if ((!data || data.length === 0) && propertyIdsWithImages.length > 0 && filters.location) {
+        console.log('🔄 No properties with images found for location, trying properties with images from any location...');
+
+        // Rebuild query with image filter but without location filter
+        let fallbackQuery = supabase
+          .from(TABLES.PROPERTIES)
+          .select(`
+            *,
+            property_images:property_images(*)
+          `)
+          .in('id', propertyIdsWithImages); // Keep the image filter
+
+        // Apply non-location filters
+        if (filters.minPrice) fallbackQuery = fallbackQuery.gte('price', filters.minPrice);
+        if (filters.maxPrice) fallbackQuery = fallbackQuery.lte('price', filters.maxPrice);
+        if (filters.bedrooms) fallbackQuery = fallbackQuery.eq('bedrooms', filters.bedrooms);
+        if (filters.propertyType) fallbackQuery = fallbackQuery.eq('property_type', filters.propertyType);
+        if (filters.furnished !== undefined) fallbackQuery = fallbackQuery.eq('furnished', filters.furnished);
+        if (filters.available !== undefined) fallbackQuery = fallbackQuery.eq('available', filters.available);
+
+        const limit = filters.limit || 50;
+        const offset = filters.offset || 0;
+        fallbackQuery = fallbackQuery.range(offset, offset + limit - 1);
+        fallbackQuery = fallbackQuery.order('price', { ascending: true });
+        fallbackQuery = fallbackQuery.order('created_at', { ascending: false });
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+
+        if (!fallbackError && fallbackData && fallbackData.length > 0) {
+          console.log(`✅ Fallback found ${fallbackData.length} properties with images from other locations`);
+
+          // Remove duplicates by title to ensure variety
+          const uniqueProperties = fallbackData.filter((prop, index, self) =>
+            index === self.findIndex(p => p.title === prop.title)
+          );
+
+          // Transform and filter for images
+          const transformedFallback = uniqueProperties.map(this.transformToFrontendProperty);
+          const fallbackWithImages = transformedFallback.filter(prop =>
+            prop.images && prop.images.length > 0 && prop.images[0] && prop.images[0].trim() !== ''
+          );
+
+          console.log(`✅ After removing duplicates: ${uniqueProperties.length} unique properties`);
+          console.log(`🖼️ Fallback properties with images: ${fallbackWithImages.length}`);
+          return fallbackWithImages;
+        }
+      }
+
+      // Transform to frontend format and filter out properties without images
+      const transformedProperties = (data || []).map(this.transformToFrontendProperty);
+
+      // Filter to only include properties that actually have images
+      const propertiesWithImages = transformedProperties.filter(prop =>
+        prop.images && prop.images.length > 0 && prop.images[0] && prop.images[0].trim() !== ''
+      );
+
+      console.log(`🖼️ Filtered to ${propertiesWithImages.length} properties with images (from ${transformedProperties.length} total)`);
+
+      return propertiesWithImages;
 
     } catch (error) {
       console.error('❌ Property search failed:', error);
@@ -282,7 +367,7 @@ class SupabasePropertyService {
         availableProperties: availableProperties || 0,
         uniqueLocations: Object.keys(locationCounts).length,
         topLocations: Object.entries(locationCounts)
-          .sort(([,a], [,b]) => b - a)
+          .sort(([, a], [, b]) => Number(b) - Number(a))
           .slice(0, 10)
           .map(([location, count]) => ({ location, count })),
         priceStats: {
@@ -306,7 +391,7 @@ class SupabasePropertyService {
   /**
    * Transform database property to frontend format
    */
-  private transformToFrontendProperty(dbProperty: any): PropertyDataUKProperty {
+  private transformToFrontendProperty(dbProperty: DatabaseProperty & { property_images?: DatabasePropertyImage[] }): PropertyDataUKProperty {
     // Parse features from JSON string
     let features: string[] = [];
     if (dbProperty.features) {
@@ -319,10 +404,15 @@ class SupabasePropertyService {
     }
 
     // Transform images to array of URLs for compatibility
-    const imageUrls = (dbProperty.property_images || []).map((img: any) => img.image_url);
+    const imageUrls = (dbProperty.property_images || []).map((img) => img.image_url);
+
+    // Debug: Log properties without images
+    if (!dbProperty.property_images || dbProperty.property_images.length === 0) {
+      console.log(`⚠️ Property without images: ${dbProperty.title} (${dbProperty.location})`);
+    }
 
     // Also create detailed image objects for components that need them
-    const imageObjects = (dbProperty.property_images || []).map((img: any) => ({
+    const imageObjects = (dbProperty.property_images || []).map((img) => ({
       url: img.image_url,
       alt: img.alt_text || 'Property image',
       isPrimary: img.is_primary || false
@@ -334,7 +424,6 @@ class SupabasePropertyService {
       price: dbProperty.price,
       priceType: dbProperty.price_type,
       location: dbProperty.location,
-      address: dbProperty.full_address || dbProperty.location,
       postcode: dbProperty.postcode || '',
       bedrooms: dbProperty.bedrooms,
       bathrooms: dbProperty.bathrooms,
@@ -342,23 +431,9 @@ class SupabasePropertyService {
       furnished: dbProperty.furnished,
       available: dbProperty.available,
       description: dbProperty.description || '',
-      landlord: dbProperty.landlord_name || 'Private Landlord',
-      features: features,
-      images: imageUrls, // Array of URL strings for carousel compatibility
-      imageObjects: imageObjects, // Detailed objects for other components
-      source: dbProperty.source,
-      sourceUrl: dbProperty.source_url,
-      addedDate: dbProperty.created_at,
-      // Add mock data for fields not in database
-      rating: 4.2,
-      reviewCount: Math.floor(Math.random() * 50) + 10,
-      verified: true,
-      amenities: features, // Use features as amenities
-      nearbyPlaces: [
-        { type: 'university' as const, name: 'Local University', distance: 800, walkTime: 10 },
-        { type: 'transport' as const, name: 'Bus Stop', distance: 100, walkTime: 2 },
-        { type: 'restaurant' as const, name: 'Local Cafe', distance: 150, walkTime: 2 }
-      ]
+      images: imageUrls,
+      landlord: dbProperty.landlord_name ? { name: dbProperty.landlord_name, verified: true } : undefined
+      // Optionally add crimeData if available in dbProperty
     };
   }
 }

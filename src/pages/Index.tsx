@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +29,7 @@ import { Suspense, lazy, useState } from 'react';
 
 // Lazy load components for better performance
 const PropertyCarousel = lazy(() => import('@/components/PropertyCarousel'));
-// const PropertySearch = lazy(() => import('@/components/CleanPropertySearch'));
+const PropertySearch = lazy(() => import('@/components/PropertySearch'));
 // Import AIChatbot directly to fix dynamic import issue
 import AIChatbot from '@/components/AIChatbot';
 const InteractiveMaps = lazy(() => import('@/components/InteractiveMaps'));
@@ -52,6 +51,9 @@ const SimpleMapsTest = lazy(() => import('@/components/SimpleMapsTest'));
 const WorkingMaps = lazy(() => import('@/components/WorkingMaps'));
 const DirectMaps = lazy(() => import('@/components/DirectMaps'));
 
+// Import AvatarAssistant component
+import AvatarAssistant from '@/components/AvatarAssistant';
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -64,6 +66,7 @@ const Index = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showAvatar, setShowAvatar] = useState(true); // State for AvatarAssistant visibility
 
   // Navigation items
   const primaryNavItems = [
@@ -220,10 +223,7 @@ const Index = () => {
               </p>
             </div>
             <Suspense fallback={<LoadingSpinner />}>
-              {/* <PropertySearch /> */}
-              <div className="text-center p-8">
-                <p>Property Search temporarily disabled for testing</p>
-              </div>
+              <PropertySearch />
             </Suspense>
           </div>
         );
@@ -440,6 +440,13 @@ const Index = () => {
           {renderContent()}
         </div>
       </main>
+
+      {/* Visual Digital Avatar Assistant (bottom right) */}
+      {showAvatar && (
+        <div className="avatar-assistant-fixed">
+          <AvatarAssistant />
+        </div>
+      )}
 
       {/* AI Assistant Modal */}
       {showAIAssistant && (

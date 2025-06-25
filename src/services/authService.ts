@@ -190,6 +190,7 @@ class AuthService {
   // Check if user is authenticated
   isAuthenticated(): boolean {
     return this.currentUser !== null;
+    
   }
 
   // Update user preferences
