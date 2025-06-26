@@ -44,3 +44,6 @@ dist-ssr
 
 # MCP Development Tools (separate git repository)
 Vibe-Coder-MCP/
+
+# Local Netlify folder
+.netlify

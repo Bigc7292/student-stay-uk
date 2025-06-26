@@ -50,12 +50,15 @@ class ZooplaCheerioService {
   private baseZooplaUrl: string;
 
   constructor() {
-    this.apifyToken = 'apify_api_fVf8kjfA4OKeIc8hAWyWtt96sGVYPp3T5NhJ';
+    this.apifyToken = import.meta.env.VITE_APIFY_TOKEN || '';
     this.actorId = 'memo23/zoopla-cheerio-scraper'; // Zoopla Cheerio scraper
-    this.enabled = true;
+    this.enabled = !!this.apifyToken;
     this.baseZooplaUrl = 'https://www.zoopla.co.uk';
-    
-    console.log('🏠 Zoopla Cheerio scraper service initialized');
+    if (!this.apifyToken) {
+      console.warn('ZooplaCheerioService: No Apify token configured, Apify features disabled.');
+    } else {
+      console.log('🏠 Zoopla Cheerio scraper service initialized');
+    }
   }
 
   // Check if Zoopla Cheerio scraper is available
@@ -78,7 +81,13 @@ class ZooplaCheerioService {
       console.log('🔍 Zoopla Cheerio search URL:', searchUrl);
 
       // Dynamic import of Apify client
-      const { ApifyClient } = await import('apify-client');
+      let ApifyClient;
+      try {
+        ({ ApifyClient } = await import('apify-client'));
+      } catch (importErr) {
+        console.error('Failed to import apify-client:', importErr);
+        return [];
+      }
       
       // Initialize the ApifyClient
       const client = new ApifyClient({
@@ -341,3 +350,4 @@ class ZooplaCheerioService {
 // Export singleton instance
 export const zooplaCheerioService = new ZooplaCheerioService();
 export type { ZooplaCheerioProperty, ZooplaCheerioSearchFilters };
+
