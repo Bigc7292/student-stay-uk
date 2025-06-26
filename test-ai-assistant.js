@@ -1,17 +1,18 @@
 // Test script for AI Assistant functionality
 const testAIAssistant = async () => {
   console.log('🤖 Testing AI Assistant...');
-  
+
   // Test OpenAI API key configuration
-  const apiKey = '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';
-  
+  // WARNING: The previous hardcoded API key has been removed. ROTATE this key immediately if it was ever committed.
+  const apiKey = process.env.OPENAI_API_KEY;
+
   if (!apiKey || apiKey === 'your_openai_api_key_here') {
-    console.error('❌ OpenAI API key not configured');
+    console.error('❌ OpenAI API key not configured. Set OPENAI_API_KEY in your environment.');
     return false;
   }
-  
+
   console.log('✅ OpenAI API key configured');
-  
+
   // Test API connectivity
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -36,15 +37,15 @@ const testAIAssistant = async () => {
         temperature: 0.7
       })
     });
-    
+
     if (!response.ok) {
       const errorData = await response.text();
       console.error('❌ OpenAI API test failed:', response.status, errorData);
       return false;
     }
-    
+
     const data = await response.json();
-    
+
     if (data.choices && data.choices[0] && data.choices[0].message) {
       console.log('✅ OpenAI API test successful');
       console.log('🤖 Sample response:', data.choices[0].message.content.substring(0, 100) + '...');
@@ -53,7 +54,7 @@ const testAIAssistant = async () => {
       console.error('❌ Unexpected API response format');
       return false;
     }
-    
+
   } catch (error) {
     console.error('❌ OpenAI API test error:', error);
     return false;
@@ -63,7 +64,7 @@ const testAIAssistant = async () => {
 // Test local AI service
 const testLocalAIService = () => {
   console.log('📝 Testing local AI service...');
-  
+
   // Test keyword matching
   const testCases = [
     { input: 'How much should I budget for accommodation?', expectedCategory: 'budget' },
@@ -71,13 +72,13 @@ const testLocalAIService = () => {
     { input: 'Is this area safe?', expectedCategory: 'safety' },
     { input: 'What are my tenancy rights?', expectedCategory: 'legal' }
   ];
-  
+
   let passed = 0;
-  
+
   testCases.forEach((testCase, index) => {
     const input = testCase.input.toLowerCase();
     let matched = false;
-    
+
     // Simple keyword matching test
     if (testCase.expectedCategory === 'budget' && (input.includes('budget') || input.includes('cost') || input.includes('money'))) {
       matched = true;
@@ -88,7 +89,7 @@ const testLocalAIService = () => {
     } else if (testCase.expectedCategory === 'legal' && (input.includes('rights') || input.includes('tenancy'))) {
       matched = true;
     }
-    
+
     if (matched) {
       console.log(`✅ Test ${index + 1}: "${testCase.input}" -> ${testCase.expectedCategory}`);
       passed++;
@@ -96,7 +97,7 @@ const testLocalAIService = () => {
       console.log(`❌ Test ${index + 1}: "${testCase.input}" -> failed to match ${testCase.expectedCategory}`);
     }
   });
-  
+
   console.log(`📊 Local AI service test: ${passed}/${testCases.length} passed`);
   return passed === testCases.length;
 };
@@ -105,15 +106,15 @@ const testLocalAIService = () => {
 const runAllAITests = async () => {
   console.log('🚀 Starting AI Assistant comprehensive tests...');
   console.log('='.repeat(50));
-  
+
   const openaiTest = await testAIAssistant();
   const localTest = testLocalAIService();
-  
+
   console.log('='.repeat(50));
   console.log('📋 AI Assistant Test Results:');
   console.log(`OpenAI API: ${openaiTest ? '✅ WORKING' : '❌ FAILED'}`);
   console.log(`Local AI: ${localTest ? '✅ WORKING' : '❌ FAILED'}`);
-  
+
   if (openaiTest && localTest) {
     console.log('🎉 AI Assistant is fully functional!');
     console.log('💡 Users can now:');
@@ -124,7 +125,7 @@ const runAllAITests = async () => {
   } else {
     console.log('⚠️ Some AI features may not work properly');
   }
-  
+
   return openaiTest && localTest;
 };
 

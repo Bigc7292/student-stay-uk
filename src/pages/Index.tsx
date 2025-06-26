@@ -1,29 +1,29 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Accessibility,
-  AlertTriangle,
-  Bot,
-  Calculator,
-  Camera,
-  ChevronDown,
-  CreditCard,
-  Eye,
-  FileText,
-  Home,
-  Key,
-  MapPin,
-  Menu,
-  MessageCircle,
-  Monitor,
-  Navigation,
-  Satellite,
-  Search,
-  Settings,
-  Shield,
-  TestTube,
-  TrendingUp,
-  X
+    Accessibility,
+    AlertTriangle,
+    Bot,
+    Calculator,
+    Camera,
+    ChevronDown,
+    CreditCard,
+    Eye,
+    FileText,
+    Home,
+    Key,
+    MapPin,
+    Menu,
+    MessageCircle,
+    Monitor,
+    Navigation,
+    Satellite,
+    Search,
+    Settings,
+    Shield,
+    TestTube,
+    TrendingUp,
+    X
 } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -46,7 +46,7 @@ const MonitoringDashboard = lazy(() => import('@/components/MonitoringDashboard'
 const APIKeyManager = lazy(() => import('@/components/APIKeyManager'));
 const APITester = lazy(() => import('@/components/APITester'));
 const GoogleMapsAPITester = lazy(() => import('@/components/GoogleMapsAPITester'));
-const DebugAPIKey = lazy(() => import('@/components/DebugAPIKey'));
+// const DebugAPIKey = lazy(() => import('@/components/DebugAPIKey'));
 const SimpleMapsTest = lazy(() => import('@/components/SimpleMapsTest'));
 const WorkingMaps = lazy(() => import('@/components/WorkingMaps'));
 const DirectMaps = lazy(() => import('@/components/DirectMaps'));
@@ -130,7 +130,8 @@ const Index = () => {
               case 'maps-test':
                 return <GoogleMapsAPITester />;
               case 'debug-api':
-                return <DebugAPIKey />;
+                // return <DebugAPIKey />;
+                return <div>Debug API component not found</div>;
               case 'simple-maps':
                 return <SimpleMapsTest />;
               case 'working-maps':
@@ -290,7 +291,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                   className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  aria-expanded={showToolsDropdown ? true : false}
+                  aria-expanded={Boolean(showToolsDropdown)}
                 >
                   <Settings className="w-4 h-4" />
                   <span>Tools</span>
@@ -371,8 +372,8 @@ const Index = () => {
                 <button
                   type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  aria-expanded={showMobileMenu}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                  aria-expanded={Boolean(showMobileMenu)}
                 >
                   {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>

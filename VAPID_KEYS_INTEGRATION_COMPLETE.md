@@ -6,8 +6,10 @@
 ```
 Subject: mailto:drivendatadynamics@gmail.com
 Public Key: BDibYZeY0FJRfh4CzjwqSsDAMgYLfDZ5wUosLbNFTS5PJIEA2PNRae-LkOUorWKZY7DFmboh5H7rnX8u4DUHNXA
-Private Key: MeEAVlatY4XcZizykrix8UY57kJgVLUl5mgF8jVmIeA
+Private Key: [REMOVED - DO NOT COMMIT SECRETS. Set in environment variable only.]
 ```
+
+> ⚠️ **Never commit private keys or secrets to the repository. Always use environment variables.**
 
 ### **📁 FILES UPDATED**
 
@@ -15,7 +17,7 @@ Private Key: MeEAVlatY4XcZizykrix8UY57kJgVLUl5mgF8jVmIeA
 ```env
 # VAPID Keys for Push Notifications
 VITE_VAPID_PUBLIC_KEY=BDibYZeY0FJRfh4CzjwqSsDAMgYLfDZ5wUosLbNFTS5PJIEA2PNRae-LkOUorWKZY7DFmboh5H7rnX8u4DUHNXA
-VITE_VAPID_PRIVATE_KEY=MeEAVlatY4XcZizykrix8UY57kJgVLUl5mgF8jVmIeA
+VITE_VAPID_PRIVATE_KEY=[SET_THIS_IN_ENVIRONMENT_ONLY]
 VITE_VAPID_SUBJECT=mailto:drivendatadynamics@gmail.com
 VITE_ENABLE_NOTIFICATIONS=true
 ```
@@ -159,3 +161,5 @@ if (notificationService.isAvailable()) {
 4. **Set up server-side push** for real-time notifications
 
 **Your push notification system is now production-ready with secure VAPID authentication!** 🔔✨
+
+[SECURITY] VAPID private key removed for security compliance. Do not store secrets in markdown or public files.

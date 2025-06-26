@@ -75,12 +75,12 @@ export class PropertyAggregatorService {
           const priceMatch =
             (typeof searchParams.minPrice === 'number' ? prop.price >= searchParams.minPrice : true) &&
             (typeof searchParams.maxPrice === 'number' ? prop.price <= searchParams.maxPrice : true);
-          // Bedrooms
-          const bedroomsMatch = searchParams.bedrooms ? prop.bedrooms >= searchParams.bedrooms : true;
+          // Bedrooms (mockData does not have bedrooms, so default to true)
+          const bedroomsMatch = true;
           // Furnished (if specified)
           const furnishedMatch =
             typeof searchParams.furnished === 'boolean' ? prop.amenities.includes('Furnished') === searchParams.furnished : true;
-          // Property type
+          // Property type (normalize for mockData)
           const propertyTypeMatch = searchFilters.propertyType
             ? prop.propertyType.toLowerCase().includes(searchFilters.propertyType)
             : true;
@@ -92,6 +92,8 @@ export class PropertyAggregatorService {
           images: prop.photos || [prop.image],
           source: 'MockData',
           url: '#',
+          bedrooms: 1, // default for mock data
+          bathrooms: 1 // default for mock data
         }));
 
       return {
@@ -119,14 +121,12 @@ export class PropertyAggregatorService {
     if (!propertyType || propertyType === 'any') {
       return 'studio';
     }
-    
-    const validTypes: Array<'studio' | 'shared' | 'flat' | 'house' | 'room'> = 
-      ['studio', 'shared', 'flat', 'house', 'room'];
-    
-    if (validTypes.includes(propertyType as any)) {
+    const validTypes: Array<'studio' | 'shared' | 'flat' | 'house' | 'room'> = [
+      'studio', 'shared', 'flat', 'house', 'room'
+    ];
+    if (validTypes.includes(propertyType as 'studio' | 'shared' | 'flat' | 'house' | 'room')) {
       return propertyType as 'studio' | 'shared' | 'flat' | 'house' | 'room';
     }
-    
     return 'studio';
   }
 }

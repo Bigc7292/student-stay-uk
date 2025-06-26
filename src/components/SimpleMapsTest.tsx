@@ -8,7 +8,7 @@ const SimpleMapsTest: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [map, setMap] = useState<any>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [initAttempted, setInitAttempted] = useState(false);
 
   // Callback ref to ensure element is available
@@ -162,8 +162,7 @@ const SimpleMapsTest: React.FC = () => {
           <div className="space-y-4">
             <div
               ref={mapCallbackRef}
-              className="w-full h-96 rounded-lg border"
-              style={{ minHeight: '400px' }}
+              className="w-full h-96 rounded-lg border simple-maps-test-map"
             />
             <Alert>
               <MapPin className="h-4 w-4" />

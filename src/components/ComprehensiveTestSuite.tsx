@@ -410,7 +410,6 @@ const ComprehensiveTestSuite: React.FC = () => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className={styles.progressBar}
-                  style={{ ['--progress-width' as keyof React.CSSProperties]: `${(completedTests / totalTests) * 100}%` } as React.CSSProperties}
                 />
               </div>
               {currentTest && (

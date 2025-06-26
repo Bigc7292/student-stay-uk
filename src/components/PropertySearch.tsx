@@ -41,7 +41,8 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
     try {
       console.log('🔍 Searching with filters:', filters);
 
-      const searchFilters: PropertySearchFilters = {
+      // Fix: Use correct type for searchFilters
+      const searchFilters: import("@/services/supabasePropertyService").PropertySearchFilters = {
         location: filters.location,
         maxPrice: filters.maxPrice,
         minPrice: filters.minPrice,
@@ -132,7 +133,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
               <label className="block text-sm font-medium mb-2">Property Type</label>
               <Select
                 value={filters.propertyType}
-                onValueChange={(value: any) => setFilters(prev => ({ ...prev, propertyType: value }))}
+                onValueChange={(value: string) => setFilters(prev => ({ ...prev, propertyType: value as 'any' | 'studio' | 'shared' | 'flat' | 'house' }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -484,3 +485,18 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
 };
 
 export default PropertySearch;
+
+// Add localAmenities to PropertyDataUKProperty type via type augmentation
+// (in this file, for local use)
+type LocalAmenity = {
+  type: 'supermarket' | 'gym' | 'university' | 'transport' | 'restaurant';
+  name: string;
+  distance: number;
+  walkTime: number;
+};
+
+declare module '@/services/propertyDataUKService' {
+  interface PropertyDataUKProperty {
+    localAmenities?: LocalAmenity[];
+  }
+}
