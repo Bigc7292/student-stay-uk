@@ -80,9 +80,13 @@ class RealPropertyService {
           const openrentResults = await this.searchOpenRent(filters);
           results.push(...openrentResults);
           console.log(`✅ Found ${openrentResults.length} properties from OpenRent`);
-        } catch (error: any) {
-          if (error.message.includes('actor-is-not-rented')) {
-            console.warn('⚠️ OpenRent scraper requires paid subscription - skipping');
+        } catch (error: unknown) {
+          if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as { message?: string }).message === 'string') {
+            if ((error as { message: string }).message.includes('actor-is-not-rented')) {
+              console.warn('⚠️ OpenRent scraper requires paid subscription - skipping');
+            } else {
+              console.error('❌ OpenRent API error:', error);
+            }
           } else {
             console.error('❌ OpenRent API error:', error);
           }
@@ -119,18 +123,28 @@ class RealPropertyService {
       const { onTheMarketService } = await import('./onTheMarketService');
 
       // Convert filters to scraper format
-      const scraperFilters = {
-        location: filters.location,
-        maxPrice: filters.maxPrice,
-        minPrice: filters.minPrice,
-        bedrooms: filters.bedrooms,
-        propertyType: filters.propertyType as any
+      const allowedGumtreeTypes = ['flat', 'house', 'room', 'studio'] as const;
+      const allowedOnTheMarketTypes = ['flat', 'house', 'bungalow', 'maisonette', 'studio'] as const;
+      // Only pass propertyType if it matches allowed values
+      const gumtreeType = allowedGumtreeTypes.includes(filters.propertyType as typeof allowedGumtreeTypes[number])
+        ? filters.propertyType as typeof allowedGumtreeTypes[number]
+        : undefined;
+      const otmType = allowedOnTheMarketTypes.includes(filters.propertyType as typeof allowedOnTheMarketTypes[number])
+        ? filters.propertyType as typeof allowedOnTheMarketTypes[number]
+        : undefined;
+      const gumtreeFilters = {
+        ...filters,
+        ...(gumtreeType ? { propertyType: gumtreeType } : {})
+      };
+      const otmFilters = {
+        ...filters,
+        ...(otmType ? { propertyType: otmType } : {})
       };
 
       // Try Gumtree scraper (budget-friendly properties)
       try {
         console.log('🔍 Trying Gumtree scraper...');
-        const gumtreeResults = await gumtreeService.searchProperties(scraperFilters);
+        const gumtreeResults = await gumtreeService.searchProperties(gumtreeFilters);
         const converted = this.convertGumtreeResults(gumtreeResults);
         results.push(...converted);
         console.log(`✅ Found ${converted.length} properties from Gumtree`);
@@ -141,7 +155,7 @@ class RealPropertyService {
       // Try OnTheMarket scraper (professional listings)
       try {
         console.log('🔍 Trying OnTheMarket scraper...');
-        const otmResults = await onTheMarketService.searchProperties(scraperFilters);
+        const otmResults = await onTheMarketService.searchProperties(otmFilters);
         const converted = this.convertOnTheMarketResults(otmResults);
         results.push(...converted);
         console.log(`✅ Found ${converted.length} properties from OnTheMarket`);
@@ -155,62 +169,67 @@ class RealPropertyService {
   }
 
   // Convert Gumtree results to standard format
-  private convertGumtreeResults(gumtreeResults: any[]): StandardProperty[] {
-    return gumtreeResults.map((property: any) => ({
+  private convertGumtreeResults(gumtreeResults: import('./gumtreeService').GumtreeProperty[]): StandardProperty[] {
+    return gumtreeResults.map((property) => ({
       id: property.id,
       title: property.title,
       price: property.price,
-      priceType: 'monthly' as const,
+      priceType: 'monthly',
       location: property.location,
       postcode: property.postcode,
+      // Gumtree does not provide lat/lng
       lat: undefined,
       lng: undefined,
-      type: property.propertyType as any,
+      type: property.propertyType as StandardProperty['type'],
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      amenities: property.features,
+      amenities: property.features || [],
       description: property.description,
       images: property.images,
       available: property.available,
       availableFrom: property.availableFrom,
-      source: 'gumtree' as const,
+      university: undefined,
+      distanceToUni: undefined,
+      rating: undefined,
+      reviews: undefined,
+      landlord: property.seller ? { name: property.seller.name, verified: property.seller.verified } : undefined,
+      source: 'gumtree',
       sourceUrl: property.url,
-      lastUpdated: new Date(),
+      lastUpdated: property.postedDate ? new Date(property.postedDate) : new Date(),
       features: property.features,
-      bills: {
-        included: property.billsIncluded,
-        details: []
-      }
+      bills: { included: property.billsIncluded, details: [] }
     }));
   }
 
   // Convert OnTheMarket results to standard format
-  private convertOnTheMarketResults(otmResults: any[]): StandardProperty[] {
-    return otmResults.map((property: any) => ({
+  private convertOnTheMarketResults(otmResults: import('./onTheMarketService').OnTheMarketProperty[]): StandardProperty[] {
+    return otmResults.map((property) => ({
       id: property.id,
       title: property.title,
       price: property.price,
-      priceType: 'monthly' as const,
+      priceType: 'monthly',
       location: property.location,
       postcode: property.postcode,
       lat: undefined,
       lng: undefined,
-      type: property.propertyType as any,
+      type: property.propertyType as StandardProperty['type'],
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      amenities: property.features,
+      amenities: property.features || [],
       description: property.description,
       images: property.images,
       available: property.available,
       availableFrom: property.availableFrom,
-      source: 'onthemarket' as const,
+      university: undefined,
+      distanceToUni: undefined,
+      rating: undefined,
+      reviews: undefined,
+      landlord: property.agent ? { name: property.agent.name, verified: property.agent.verified } : undefined,
+      source: 'onthemarket',
       sourceUrl: property.url,
-      lastUpdated: new Date(),
+      lastUpdated: property.postedDate ? new Date(property.postedDate) : new Date(),
       features: property.features,
-      bills: {
-        included: property.billsIncluded,
-        details: []
-      }
+      bills: { included: property.billsIncluded, details: [] }
     }));
   }
 
@@ -304,82 +323,67 @@ class RealPropertyService {
   }
 
   // Transform Zoopla data to standard format
-  private transformZooplaData(data: any, filters: SearchFilters): StandardProperty[] {
-    if (!data || !Array.isArray(data)) return [];
-
-    return data.map((property: any) => {
-      const standardProperty: StandardProperty = {
-        id: `zoopla-${property.id || Math.random().toString(36)}`,
-        title: property.title || property.address || 'Property',
-        price: this.parsePrice(property.price || property.rent),
-        priceType: 'monthly',
-        location: property.address || property.location || filters.location,
-        postcode: property.postcode,
-        lat: property.latitude,
-        lng: property.longitude,
-        type: this.standardizePropertyType(property.property_type || property.type),
-        bedrooms: parseInt(property.bedrooms) || 1,
-        bathrooms: parseInt(property.bathrooms) || 1,
-        amenities: this.extractAmenities(property.features || property.description),
-        description: property.description || property.summary || '',
-        images: this.extractImages(property.images || property.photos),
-        available: true,
-        availableFrom: property.available_from,
-        rating: property.rating ? parseFloat(property.rating) : undefined,
-        reviews: property.review_count ? parseInt(property.review_count) : undefined,
-        source: 'zoopla',
-        sourceUrl: property.url || property.link,
-        lastUpdated: new Date(),
-        features: property.features || [],
-        bills: {
-          included: property.bills_included || false,
-          details: property.bill_details || []
-        }
-      };
-
-      return standardProperty;
-    }).filter(property => property.price > 0);
+  private transformZooplaData(data: Record<string, unknown>[], filters: SearchFilters): StandardProperty[] {
+    return data.map((property) => ({
+      id: typeof property.id === 'string' ? property.id : '',
+      title: typeof property.title === 'string' ? property.title : (typeof property.address === 'string' ? property.address : 'Property'),
+      price: this.parsePrice(typeof property.price === 'string' || typeof property.price === 'number' ? property.price : 0),
+      priceType: 'monthly',
+      location: typeof property.address === 'string' ? property.address : (typeof property.location === 'string' ? property.location : filters.location),
+      postcode: typeof property.postcode === 'string' ? property.postcode : undefined,
+      lat: typeof property.latitude === 'number' ? property.latitude : undefined,
+      lng: typeof property.longitude === 'number' ? property.longitude : undefined,
+      type: this.standardizePropertyType(typeof property.property_type === 'string' ? property.property_type : (typeof property.type === 'string' ? property.type : 'flat')),
+      bedrooms: typeof property.bedrooms === 'string' ? parseInt(property.bedrooms) : 1,
+      bathrooms: typeof property.bathrooms === 'string' ? parseInt(property.bathrooms) : 1,
+      amenities: this.extractAmenities(typeof property.features === 'string' ? property.features : (typeof property.description === 'string' ? property.description : '')),
+      description: typeof property.description === 'string' ? property.description : (typeof property.summary === 'string' ? property.summary : ''),
+      images: this.extractImages(Array.isArray(property.images) ? property.images as string[] : (Array.isArray(property.photos) ? property.photos as string[] : [])),
+      available: typeof property.available === 'boolean' ? property.available : true,
+      availableFrom: typeof property.available_from === 'string' ? property.available_from : undefined,
+      university: typeof property.university === 'string' ? property.university : undefined,
+      distanceToUni: typeof property.distanceToUni === 'string' ? property.distanceToUni : undefined,
+      rating: typeof property.rating === 'string' ? parseFloat(property.rating) : undefined,
+      reviews: typeof property.reviews === 'number' ? property.reviews : undefined,
+      landlord: typeof property.landlord === 'object' && property.landlord !== null ? property.landlord as StandardProperty['landlord'] : undefined,
+      source: 'zoopla',
+      sourceUrl: typeof property.sourceUrl === 'string' ? property.sourceUrl : undefined,
+      lastUpdated: property.lastUpdated instanceof Date ? property.lastUpdated : new Date(),
+      features: Array.isArray(property.features) ? property.features as string[] : [],
+      bills: typeof property.bills === 'object' && property.bills !== null ? property.bills as StandardProperty['bills'] : { included: false }
+    }));
   }
 
   // Transform OpenRent data to standard format
-  private transformOpenRentData(data: any, filters: SearchFilters): StandardProperty[] {
-    if (!data || !Array.isArray(data)) return [];
-
-    return data.map((property: any) => {
-      const standardProperty: StandardProperty = {
-        id: `openrent-${property.id || Math.random().toString(36)}`,
-        title: property.title || property.headline || 'Property',
-        price: this.parsePrice(property.price || property.rent),
-        priceType: property.price_period === 'week' ? 'weekly' : 'monthly',
-        location: property.address || property.location || filters.location,
-        postcode: property.postcode,
-        lat: property.lat || property.latitude,
-        lng: property.lng || property.longitude,
-        type: this.standardizePropertyType(property.property_type || property.type),
-        bedrooms: parseInt(property.bedrooms) || 1,
-        bathrooms: parseInt(property.bathrooms) || 1,
-        amenities: this.extractAmenities(property.amenities || property.description),
-        description: property.description || property.details || '',
-        images: this.extractImages(property.images || property.photos),
-        available: property.available !== false,
-        availableFrom: property.available_from || property.available_date,
-        landlord: {
-          name: property.landlord_name || 'Landlord',
-          verified: property.landlord_verified || false,
-          rating: property.landlord_rating ? parseFloat(property.landlord_rating) : undefined
-        },
-        source: 'openrent',
-        sourceUrl: property.url || property.link,
-        lastUpdated: new Date(),
-        features: property.features || [],
-        bills: {
-          included: property.bills_included || false,
-          details: property.bills || []
-        }
-      };
-
-      return standardProperty;
-    }).filter(property => property.price > 0);
+  private transformOpenRentData(data: Record<string, unknown>[], filters: SearchFilters): StandardProperty[] {
+    return data.map((property) => ({
+      id: typeof property.id === 'string' ? property.id : '',
+      title: typeof property.title === 'string' ? property.title : (typeof property.address === 'string' ? property.address : 'Property'),
+      price: this.parsePrice(typeof property.price === 'string' || typeof property.price === 'number' ? property.price : 0),
+      priceType: 'monthly',
+      location: typeof property.address === 'string' ? property.address : (typeof property.location === 'string' ? property.location : filters.location),
+      postcode: typeof property.postcode === 'string' ? property.postcode : undefined,
+      lat: typeof property.latitude === 'number' ? property.latitude : undefined,
+      lng: typeof property.longitude === 'number' ? property.longitude : undefined,
+      type: this.standardizePropertyType(typeof property.property_type === 'string' ? property.property_type : (typeof property.type === 'string' ? property.type : 'flat')),
+      bedrooms: typeof property.bedrooms === 'string' ? parseInt(property.bedrooms) : 1,
+      bathrooms: typeof property.bathrooms === 'string' ? parseInt(property.bathrooms) : 1,
+      amenities: this.extractAmenities(typeof property.features === 'string' ? property.features : (typeof property.description === 'string' ? property.description : '')),
+      description: typeof property.description === 'string' ? property.description : (typeof property.summary === 'string' ? property.summary : ''),
+      images: this.extractImages(Array.isArray(property.images) ? property.images as string[] : (Array.isArray(property.photos) ? property.photos as string[] : [])),
+      available: typeof property.available === 'boolean' ? property.available : true,
+      availableFrom: typeof property.available_from === 'string' ? property.available_from : undefined,
+      university: typeof property.university === 'string' ? property.university : undefined,
+      distanceToUni: typeof property.distanceToUni === 'string' ? property.distanceToUni : undefined,
+      rating: typeof property.rating === 'string' ? parseFloat(property.rating) : undefined,
+      reviews: typeof property.reviews === 'number' ? property.reviews : undefined,
+      landlord: typeof property.landlord === 'object' && property.landlord !== null ? property.landlord as StandardProperty['landlord'] : undefined,
+      source: 'openrent',
+      sourceUrl: typeof property.sourceUrl === 'string' ? property.sourceUrl : undefined,
+      lastUpdated: property.lastUpdated instanceof Date ? property.lastUpdated : new Date(),
+      features: Array.isArray(property.features) ? property.features as string[] : [],
+      bills: typeof property.bills === 'object' && property.bills !== null ? property.bills as StandardProperty['bills'] : { included: false }
+    }));
   }
 
   // Helper functions
@@ -419,7 +423,7 @@ class RealPropertyService {
     return urls;
   }
 
-  private parsePrice(priceStr: any): number {
+  private parsePrice(priceStr: string | number): number {
     if (typeof priceStr === 'number') return priceStr;
     if (!priceStr) return 0;
     
@@ -428,7 +432,7 @@ class RealPropertyService {
     return isNaN(price) ? 0 : price;
   }
 
-  private standardizePropertyType(type: any): StandardProperty['type'] {
+  private standardizePropertyType(type: string): StandardProperty['type'] {
     if (!type) return 'flat';
     
     const typeStr = type.toString().toLowerCase();
@@ -441,7 +445,7 @@ class RealPropertyService {
     return 'flat';
   }
 
-  private extractAmenities(text: any): string[] {
+  private extractAmenities(text: string): string[] {
     if (!text) return [];
     
     const amenityKeywords = [
@@ -462,7 +466,7 @@ class RealPropertyService {
     return amenityKeywords.filter(keyword => textStr.includes(keyword));
   }
 
-  private extractImages(images: any): string[] {
+  private extractImages(images: string[] | undefined): string[] {
     if (!images) return [];
     if (Array.isArray(images)) return images.filter(img => typeof img === 'string');
     if (typeof images === 'string') return [images];
@@ -625,4 +629,4 @@ class RealPropertyService {
   }
 }
 
-export const realPropertyService = new RealPropertyService();
+export default new RealPropertyService();

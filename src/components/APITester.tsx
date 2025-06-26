@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { CheckCircle, XCircle, Loader, AlertTriangle, Play } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, CheckCircle, Loader, Play, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface TestResult {
   api: string;
   status: 'testing' | 'success' | 'error' | 'not-configured';
   message: string;
   details?: string;
-  data?: any;
+  data?: unknown;
 }
 
 const APITester: React.FC = () => {
@@ -21,7 +21,13 @@ const APITester: React.FC = () => {
     console.log('🧪 APITester component loaded successfully');
   }, []);
 
-  const updateTestResult = (api: string, status: TestResult['status'], message: string, details?: string, data?: any) => {
+  const updateTestResult = (
+    api: string,
+    status: TestResult['status'],
+    message: string,
+    details?: string,
+    data?: unknown
+  ) => {
     setTestResults(prev => {
       const existing = prev.find(r => r.api === api);
       if (existing) {
@@ -173,7 +179,7 @@ const APITester: React.FC = () => {
     updateTestResult('Real Property Service', 'testing', 'Testing integrated property service...');
 
     try {
-      const { realPropertyService } = await import('../services/realPropertyService');
+      const realPropertyService = (await import('../services/realPropertyService')).default;
       
       const searchFilters = {
         location: 'Manchester',

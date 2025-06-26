@@ -237,7 +237,7 @@ const ComprehensiveTestSuite: React.FC = () => {
 
   const testRealPropertyData = async () => {
     try {
-      const { realPropertyService } = await import('../services/realPropertyService');
+      const realPropertyService = (await import('../services/realPropertyService')).default;
       const isConfigured = realPropertyService.isConfigured();
       
       if (!isConfigured.zoopla && !isConfigured.openrent) {
