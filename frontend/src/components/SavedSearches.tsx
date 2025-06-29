@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bookmark, Bell, Trash2, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

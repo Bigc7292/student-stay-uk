@@ -1,4 +1,3 @@
-
 import React from 'react';
 import * as Sentry from '@sentry/react';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
