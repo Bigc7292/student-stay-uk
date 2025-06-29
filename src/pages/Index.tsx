@@ -1,29 +1,29 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Accessibility,
-    AlertTriangle,
-    Bot,
-    Calculator,
-    Camera,
-    ChevronDown,
-    CreditCard,
-    Eye,
-    FileText,
-    Home,
-    Key,
-    MapPin,
-    Menu,
-    MessageCircle,
-    Monitor,
-    Navigation,
-    Satellite,
-    Search,
-    Settings,
-    Shield,
-    TestTube,
-    TrendingUp,
-    X
+  Accessibility,
+  AlertTriangle,
+  Bot,
+  Calculator,
+  Camera,
+  ChevronDown,
+  CreditCard,
+  Eye,
+  FileText,
+  Home,
+  Key,
+  MapPin,
+  Menu,
+  MessageCircle,
+  Monitor,
+  Navigation,
+  Satellite,
+  Search,
+  Settings,
+  Shield,
+  TestTube,
+  TrendingUp,
+  X
 } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
 
@@ -266,7 +266,7 @@ const Index = () => {
                 {primaryNavItems.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <button
+                    <Button
                       key={item.id}
                       onClick={() => {
                         setActiveTab(item.id);
@@ -277,26 +277,29 @@ const Index = () => {
                           ? 'bg-blue-100 text-blue-700'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
+                      aria-current={activeTab === item.id ? 'page' : undefined}
                     >
                       <Icon className="w-4 h-4" />
                       <span>{item.label}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
 
               {/* Tools Dropdown */}
               <div className="relative">
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
                   className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  aria-expanded={Boolean(showToolsDropdown)}
+                  aria-expanded={!!showToolsDropdown}
+                  aria-haspopup="menu"
+                  aria-label="Open tools menu"
                 >
                   <Settings className="w-4 h-4" />
                   <span>Tools</span>
                   <ChevronDown className="w-3 h-3" />
-                </button>
+                </Button>
 
                 {showToolsDropdown && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
@@ -307,7 +310,7 @@ const Index = () => {
                       {toolsNavItems.map((item) => {
                         const Icon = item.icon;
                         return (
-                          <button
+                          <Button
                             key={item.id}
                             onClick={() => {
                               setActiveTab(item.id);
@@ -318,7 +321,7 @@ const Index = () => {
                           >
                             <Icon className="w-4 h-4 mr-3" />
                             {item.label}
-                          </button>
+                          </Button>
                         );
                       })}
 
@@ -329,7 +332,7 @@ const Index = () => {
                         {adminNavItems.map((item) => {
                           const Icon = item.icon;
                           return (
-                            <button
+                            <Button
                               key={item.id}
                               onClick={() => {
                                 setActiveTab(item.id);
@@ -340,7 +343,7 @@ const Index = () => {
                             >
                               <Icon className="w-4 h-4 mr-3" />
                               {item.label}
-                            </button>
+                            </Button>
                           );
                         })}
                       </div>
@@ -369,14 +372,15 @@ const Index = () => {
 
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                  aria-expanded={Boolean(showMobileMenu)}
+                  aria-expanded={!!showMobileMenu}
+                  aria-label={showMobileMenu ? 'Close mobile menu' : 'Open mobile menu'}
                 >
                   {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -388,7 +392,7 @@ const Index = () => {
                 {primaryNavItems.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <button
+                    <Button
                       key={item.id}
                       onClick={() => {
                         setActiveTab(item.id);
@@ -400,10 +404,11 @@ const Index = () => {
                           ? 'bg-blue-100 text-blue-700'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
+                      aria-current={activeTab === item.id ? 'page' : undefined}
                     >
                       <Icon className="w-4 h-4" />
                       <span>{item.label}</span>
-                    </button>
+                    </Button>
                   );
                 })}
 
@@ -414,7 +419,7 @@ const Index = () => {
                   {[...toolsNavItems, ...adminNavItems].map((item) => {
                     const Icon = item.icon;
                     return (
-                      <button
+                      <Button
                         key={item.id}
                         onClick={() => {
                           setActiveTab(item.id);
@@ -425,7 +430,7 @@ const Index = () => {
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.label}</span>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -492,9 +497,9 @@ const Index = () => {
               AI-Powered Student Accommodation Platform • Real-time data for students
             </p>
             <div className="flex justify-center space-x-6 text-sm text-gray-400">
-              <button className="hover:text-white">Privacy Policy</button>
-              <button className="hover:text-white">Terms of Service</button>
-              <button className="hover:text-white">Contact</button>
+              <Button className="hover:text-white" variant="link" aria-label="Privacy Policy">Privacy Policy</Button>
+              <Button className="hover:text-white" variant="link" aria-label="Terms of Service">Terms of Service</Button>
+              <Button className="hover:text-white" variant="link" aria-label="Contact">Contact</Button>
             </div>
           </div>
         </div>

@@ -1,10 +1,3 @@
-// Optimized service exports for StudentHome
-export { supabasePropertyService } from './supabasePropertyService';
-export { propertyDataUKService } from './propertyDataUKService';
-export { dataService } from './dataService';
-export { authService } from './authService';
-export { realPropertyService } from './realPropertyService';
-
-// Types
+// Only export types to avoid circular dependencies
 export type { PropertySearchFilters, DatabaseProperty } from './supabasePropertyService';
 export type { PropertyDataUKProperty } from './propertyDataUKService';

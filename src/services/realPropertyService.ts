@@ -134,17 +134,63 @@ class RealPropertyService {
         : undefined;
       const gumtreeFilters = {
         ...filters,
-        ...(gumtreeType ? { propertyType: gumtreeType } : {})
-      };
-      const otmFilters = {
+        ...(gumtreeType ? { propertyType: gumtreeType } : {}),
+      } as Omit<typeof filters, 'propertyType'> & { propertyType?: typeof allowedGumtreeTypes[number] };
+      const otmFiltersBase = {
         ...filters,
         ...(otmType ? { propertyType: otmType } : {})
       };
+      // Remove propertyType if not valid (type-safe)
+      const { propertyType, ...restOtms } = otmFiltersBase;
+      const otmFilters: import('./onTheMarketService').OnTheMarketSearchFilters = otmType
+        ? { ...restOtms, propertyType: otmType }
+        : restOtms;
 
       // Try Gumtree scraper (budget-friendly properties)
       try {
         console.log('🔍 Trying Gumtree scraper...');
-        const gumtreeResults = await gumtreeService.searchProperties(gumtreeFilters);
+        // Ensure gumtreeResults is GumtreeProperty[]
+        const gumtreeResultsRaw = await gumtreeService.searchProperties(gumtreeFilters);
+        // Type guard for GumtreeProperty
+        function toGumtreeProperty(obj: unknown): import('./gumtreeService').GumtreeProperty | null {
+          if (
+            obj && typeof obj === 'object'
+          ) {
+            const o = obj as Record<string, unknown>;
+            if (
+              typeof o.id === 'string' &&
+              typeof o.title === 'string' &&
+              typeof o.price === 'number' &&
+              typeof o.location === 'string'
+            ) {
+              return {
+                id: o.id,
+                title: o.title,
+                price: o.price,
+                location: o.location,
+                postcode: typeof o.postcode === 'string' ? o.postcode : '',
+                bedrooms: typeof o.bedrooms === 'number' ? o.bedrooms : 1,
+                bathrooms: typeof o.bathrooms === 'number' ? o.bathrooms : 1,
+                description: typeof o.description === 'string' ? o.description : '',
+                images: Array.isArray(o.images) ? o.images as string[] : [],
+                available: typeof o.available === 'boolean' ? o.available : true,
+                availableFrom: typeof o.availableFrom === 'string' ? o.availableFrom : undefined,
+                propertyType: typeof o.propertyType === 'string' ? o.propertyType : 'flat',
+                furnished: typeof o.furnished === 'boolean' ? o.furnished : false,
+                billsIncluded: typeof o.billsIncluded === 'boolean' ? o.billsIncluded : false,
+                features: Array.isArray(o.features) ? o.features as string[] : [],
+                seller: typeof o.seller === 'object' && o.seller !== null ? o.seller as { name: string; phone?: string; verified: boolean } : undefined,
+                url: typeof o.url === 'string' ? o.url : '',
+                postedDate: typeof o.postedDate === 'string' ? o.postedDate : undefined,
+                category: typeof o.category === 'string' ? o.category : '',
+              };
+            }
+          }
+          return null;
+        }
+        const gumtreeResults: import('./gumtreeService').GumtreeProperty[] = Array.isArray(gumtreeResultsRaw)
+          ? gumtreeResultsRaw.map(toGumtreeProperty).filter((x): x is import('./gumtreeService').GumtreeProperty => x !== null)
+          : [];
         const converted = this.convertGumtreeResults(gumtreeResults);
         results.push(...converted);
         console.log(`✅ Found ${converted.length} properties from Gumtree`);

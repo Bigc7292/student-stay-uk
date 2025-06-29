@@ -1,0 +1,4 @@
+/*
+  This _redirects file ensures all routes are handled by your SPA (React/Vite)
+*/
+/*    /index.html   200

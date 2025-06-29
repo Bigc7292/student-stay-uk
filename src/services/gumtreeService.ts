@@ -39,8 +39,8 @@ interface GumtreeSearchFilters {
   radius?: number;
 }
 
-// Import the Property interface from PropertyServiceManager
-import type { Property } from './PropertyServiceManager';
+// Import the Property interface from types/Property
+import type { Property } from '../types/Property';
 
 class GumtreeService {
   private apifyToken: string;

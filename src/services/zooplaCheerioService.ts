@@ -1,6 +1,54 @@
 // Zoopla Cheerio API Service - Apify Scraper Integration
 // Backup Zoopla data extraction using Cheerio scraper
 
+interface PriceHistoryEntry {
+  date: string;
+  price: number;
+  event: string;
+}
+
+interface RawZooplaScrapedProperty {
+  id?: string;
+  title?: string;
+  price?: string | number;
+  rent?: string | number;
+  location?: string;
+  address?: string;
+  postcode?: string;
+  bedrooms?: string | number;
+  bathrooms?: string | number;
+  description?: string;
+  summary?: string;
+  images?: string[] | string;
+  photos?: string[] | string;
+  available?: boolean;
+  availableFrom?: string;
+  available_date?: string;
+  propertyType?: string;
+  type?: string;
+  furnished?: boolean | string;
+  billsIncluded?: boolean | string;
+  features?: string[] | string;
+  amenities?: string[] | string;
+  agent?: {
+    name?: string;
+    phone?: string;
+    verified?: boolean;
+    agentName?: string;
+    agentPhone?: string;
+  };
+  url?: string;
+  propertyUrl?: string;
+  postedDate?: string;
+  addedDate?: string;
+  size?: string;
+  floorArea?: string;
+  councilTaxBand?: string;
+  epcRating?: string;
+  rentalYield?: string | number;
+  priceHistory?: PriceHistoryEntry[];
+}
+
 interface ZooplaCheerioProperty {
   id: string;
   title: string;
@@ -28,7 +76,7 @@ interface ZooplaCheerioProperty {
   councilTaxBand?: string;
   epcRating?: string;
   rentalYield?: number;
-  priceHistory?: any[];
+  priceHistory?: PriceHistoryEntry[];
 }
 
 interface ZooplaCheerioSearchFilters {
@@ -193,16 +241,16 @@ class ZooplaCheerioService {
   }
 
   // Transform scraped data from Apify to our standard format
-  private transformScrapedData(items: any[]): ZooplaCheerioProperty[] {
+  private transformScrapedData(items: RawZooplaScrapedProperty[]): ZooplaCheerioProperty[] {
     if (!items || !Array.isArray(items)) {
       return [];
     }
 
-    return items.map((property: any) => this.transformScrapedProperty(property));
+    return items.map((property: RawZooplaScrapedProperty) => this.transformScrapedProperty(property));
   }
 
   // Transform single scraped property data
-  private transformScrapedProperty(property: any): ZooplaCheerioProperty {
+  private transformScrapedProperty(property: RawZooplaScrapedProperty): ZooplaCheerioProperty {
     return {
       id: `zoopla-cheerio-${property.id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: property.title || property.address || 'Property',
@@ -220,8 +268,8 @@ class ZooplaCheerioService {
       billsIncluded: this.parseBoolean(property.billsIncluded),
       features: this.extractFeatures(property.features || property.amenities),
       agent: property.agent ? {
-        name: property.agent.name || property.agentName || 'Agent',
-        phone: property.agent.phone || property.agentPhone,
+        name: property.agent.name || 'Agent',
+        phone: property.agent.phone,
         verified: true // Zoopla agents are generally verified
       } : undefined,
       url: property.url || property.propertyUrl || '',
@@ -235,7 +283,7 @@ class ZooplaCheerioService {
   }
 
   // Helper methods
-  private parsePrice(priceStr: any): number {
+  private parsePrice(priceStr: unknown): number {
     if (typeof priceStr === 'number') return priceStr;
     if (!priceStr) return 0;
     
@@ -244,7 +292,7 @@ class ZooplaCheerioService {
     return isNaN(price) ? 0 : price;
   }
 
-  private parseNumber(numStr: any): number {
+  private parseNumber(numStr: unknown): number {
     if (typeof numStr === 'number') return numStr;
     if (!numStr) return 0;
     
@@ -252,7 +300,7 @@ class ZooplaCheerioService {
     return isNaN(num) ? 0 : num;
   }
 
-  private parseBoolean(value: any): boolean {
+  private parseBoolean(value: unknown): boolean {
     if (typeof value === 'boolean') return value;
     if (typeof value === 'string') {
       const lower = value.toLowerCase();
@@ -261,14 +309,14 @@ class ZooplaCheerioService {
     return false;
   }
 
-  private extractImages(images: any): string[] {
+  private extractImages(images: unknown): string[] {
     if (!images) return [];
     if (Array.isArray(images)) return images.filter(img => typeof img === 'string');
     if (typeof images === 'string') return [images];
     return [];
   }
 
-  private extractFeatures(features: any): string[] {
+  private extractFeatures(features: unknown): string[] {
     if (!features) return [];
     if (Array.isArray(features)) return features;
     if (typeof features === 'string') return features.split(',').map(f => f.trim());
@@ -276,7 +324,7 @@ class ZooplaCheerioService {
   }
 
   // Test the scraper
-  async testScraper(): Promise<{ success: boolean; message: string; sampleData?: any }> {
+  async testScraper(): Promise<{ success: boolean; message: string; sampleData?: ZooplaCheerioProperty[] }> {
     try {
       console.log('🧪 Testing Zoopla Cheerio scraper...');
       
@@ -318,14 +366,14 @@ class ZooplaCheerioService {
   }
 
   // Compare with existing Zoopla RapidAPI data
-  async compareWithRapidAPI(filters: ZooplaCheerioSearchFilters): Promise<{ cheerio: ZooplaCheerioProperty[]; rapidapi: any[]; comparison: any }> {
+  async compareWithRapidAPI(filters: ZooplaCheerioSearchFilters): Promise<{ cheerio: ZooplaCheerioProperty[]; rapidapi: ZooplaCheerioProperty[]; comparison: { cheerioCount: number; rapidApiCount: number; overlap: number; uniqueToCheerio: number; uniqueToRapidApi: number } }> {
     try {
       // Get data from Cheerio scraper
       const cheerioData = await this.searchProperties(filters);
       
       // This would integrate with your existing Zoopla RapidAPI service
       // const rapidApiData = await zooplaService.searchProperties(filters);
-      const rapidApiData: any[] = []; // Placeholder
+      const rapidApiData: ZooplaCheerioProperty[] = []; // Placeholder
       
       const comparison = {
         cheerioCount: cheerioData.length,

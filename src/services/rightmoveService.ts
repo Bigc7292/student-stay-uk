@@ -41,8 +41,8 @@ interface RightmoveSearchFilters {
   radius?: number; // miles from location
 }
 
-// Import the Property interface from PropertyServiceManager
-import type { Property } from './PropertyServiceManager';
+// Import the Property interface from types/Property
+import type { Property } from '../types/Property';
 
 class RightmoveService {
   private apifyToken: string;

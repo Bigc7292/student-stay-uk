@@ -178,6 +178,7 @@ const PropertyDetails = () => {
                             className={`w-3 h-3 rounded-full ${
                               index === currentImageIndex ? 'bg-white' : 'bg-white/50'
                             }`}
+                            aria-label={`Show image ${index + 1}`}
                           />
                         ))}
                       </div>

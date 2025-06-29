@@ -32,8 +32,8 @@ export interface SpareRoomSearchParams {
   radius: number;
 }
 
-// Import the Property interface from PropertyServiceManager
-import type { Property } from './PropertyServiceManager';
+// Import the Property interface from types/Property
+import type { Property } from '../types/Property';
 
 class SpareRoomService {
   private client: ApifyClient;
@@ -88,8 +88,15 @@ class SpareRoomService {
     return {
       id: spareRoomProp.id,
       title: spareRoomProp.title,
+      address: spareRoomProp.location, // Map location to address
       price: spareRoomProp.price,
-      location: spareRoomProp.location,
+      bedrooms: spareRoomProp.bedrooms,
+      bathrooms: spareRoomProp.bathrooms,
+      description: spareRoomProp.description,
+      images: spareRoomProp.images,
+      url: spareRoomProp.url,
+      source: 'spareRoom',
+      // Optionally add features, amenities, etc. as extra fields
       features: [
         spareRoomProp.furnished ? 'Furnished' : 'Unfurnished',
         spareRoomProp.billsIncluded ? 'Bills Included' : 'Bills Not Included',
@@ -97,7 +104,6 @@ class SpareRoomService {
         `${spareRoomProp.bathrooms} Bathroom${spareRoomProp.bathrooms > 1 ? 's' : ''}`
       ],
       amenities: this.extractAmenities(spareRoomProp.description),
-      images: spareRoomProp.images,
       available: true,
       qualityScore: this.calculateQualityScore(spareRoomProp),
       studentSuitability: this.calculateStudentSuitability(spareRoomProp)
@@ -139,27 +145,27 @@ class SpareRoomService {
     return Math.min(score, 100);
   }
 
-  private transformScrapedProperty(item: any): SpareRoomProperty {
+  private transformScrapedProperty(item: Record<string, unknown>): SpareRoomProperty {
     return {
-      id: item.id || `spareroom-${Date.now()}-${Math.random()}`,
-      title: item.title || 'Property Available',
-      price: this.parsePrice(item.price),
-      location: item.location || 'Location not specified',
-      bedrooms: this.parseBedrooms(item.bedrooms),
-      bathrooms: item.bathrooms || 1,
-      furnished: this.parseFurnished(item.furnished),
-      billsIncluded: this.parseBillsIncluded(item.bills),
-      availableFrom: item.availableFrom || 'Available now',
-      description: item.description || 'No description available',
-      images: this.parseImages(item.images),
-      landlordType: item.landlordType || 'Private',
-      propertyType: item.propertyType || 'Room',
-      url: item.url || this.baseUrl,
-      coordinates: item.coordinates
+      id: String(item.id ?? `spareroom-${Date.now()}-${Math.random()}`),
+      title: String(item.title ?? 'Property Available'),
+      price: this.parsePrice(String(item.price ?? '0')),
+      location: String(item.location ?? 'Location not specified'),
+      bedrooms: this.parseBedrooms(String(item.bedrooms ?? '1')),
+      bathrooms: Number(item.bathrooms ?? 1),
+      furnished: this.parseFurnished(String(item.furnished ?? 'false')),
+      billsIncluded: this.parseBillsIncluded(String(item.bills ?? 'false')),
+      availableFrom: String(item.availableFrom ?? 'Available now'),
+      description: String(item.description ?? 'No description available'),
+      images: this.parseImages(item.images ?? []),
+      landlordType: String(item.landlordType ?? 'Private'),
+      propertyType: String(item.propertyType ?? 'Room'),
+      url: String(item.url ?? this.baseUrl),
+      coordinates: typeof item.coordinates === 'object' && item.coordinates !== null && 'lat' in item.coordinates && 'lng' in item.coordinates ? item.coordinates as { lat: number; lng: number } : undefined
     };
   }
 
-  private parsePrice(price: any): number {
+  private parsePrice(price: string): number {
     if (typeof price === 'number') return price;
     if (typeof price === 'string') {
       const numericPrice = price.replace(/[£,]/g, '');
@@ -168,7 +174,7 @@ class SpareRoomService {
     return 0;
   }
 
-  private parseBedrooms(bedrooms: any): number {
+  private parseBedrooms(bedrooms: string): number {
     if (typeof bedrooms === 'number') return bedrooms;
     if (typeof bedrooms === 'string') {
       return parseInt(bedrooms) || 1;
@@ -176,7 +182,7 @@ class SpareRoomService {
     return 1;
   }
 
-  private parseFurnished(furnished: any): boolean {
+  private parseFurnished(furnished: string): boolean {
     if (typeof furnished === 'boolean') return furnished;
     if (typeof furnished === 'string') {
       return furnished.toLowerCase().includes('furnished');
@@ -184,7 +190,7 @@ class SpareRoomService {
     return false;
   }
 
-  private parseBillsIncluded(bills: any): boolean {
+  private parseBillsIncluded(bills: string): boolean {
     if (typeof bills === 'boolean') return bills;
     if (typeof bills === 'string') {
       return bills.toLowerCase().includes('included');
@@ -192,7 +198,7 @@ class SpareRoomService {
     return false;
   }
 
-  private parseImages(images: any): string[] {
+  private parseImages(images: unknown): string[] {
     if (Array.isArray(images)) {
       return images.filter(img => typeof img === 'string');
     }

@@ -1,8 +1,8 @@
-
 import { spareRoomService } from './spareRoomService';
 import { rightmoveService } from './rightmoveService';
 import { gumtreeService } from './gumtreeService';
 import { openRentService } from './openRentService';
+import type { Property } from '../types/Property';
 
 export interface SearchParams {
   location: string;
@@ -13,20 +13,6 @@ export interface SearchParams {
   billsIncluded: boolean;
   availableFrom: string;
   radius: number;
-}
-
-// Define a simple Property type here since the external one doesn't exist
-export interface Property {
-  id: string | number;
-  title: string;
-  price: number;
-  location: string;
-  features: string[];
-  amenities: string[];
-  images: string[];
-  available: boolean;
-  qualityScore: number;
-  studentSuitability: number;
 }
 
 interface PropertyService {
@@ -66,7 +52,7 @@ export class PropertyServiceManager {
     return results;
   }
 
-  public async searchProperties(params: any): Promise<{ properties: Property[]; summary: any }> {
+  public async searchProperties(params: SearchParams): Promise<{ properties: Property[]; summary: Record<string, unknown> }> {
     const properties = await this.searchAllServices(params);
     return {
       properties,
