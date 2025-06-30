@@ -1,0 +1,7 @@
+# Deploy to Netlify (Production)
+# Usage: npm run deploy
+
+"scripts": {
+  // ...existing scripts...
+  "deploy": "npm run build && netlify deploy --prod --dir=dist"
+}

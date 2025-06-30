@@ -1,0 +1,18 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[dev]
+  command = "npm run dev"
+  port = 8080
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Ensure SPA routing works for React/Vite
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

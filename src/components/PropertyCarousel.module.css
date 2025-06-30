@@ -1,0 +1,7 @@
+.carousel-nav-touch {
+  touch-action: manipulation;
+}
+
+.carousel-img-mobile {
+  max-height: 320px;
+}
