@@ -1,0 +1,29 @@
+# Grok deployment configuration for full-stack app
+services:
+  - name: frontend
+    root: student-stay-uk
+    build: npm install && npm run build
+    start: npm run preview
+    port: 4173
+    env:
+      - VITE_SUPABASE_URL
+      - VITE_SUPABASE_ANON_KEY
+      - VITE_GOOGLE_MAPS_API_KEY
+      - VITE_OPENAI_API_KEY
+      - BRIGHT_DATA_API_TOKEN
+      - BRIGHT_DATA_WEB_UNLOCKER_ZONE
+      - BRIGHT_DATA_BROWSER_ZONE
+      - BRIGHT_DATA_RATE_LIMIT
+  - name: backend
+    root: server
+    build: npm install
+    start: npm run dev
+    port: 8080
+    env:
+      - SUPABASE_URL
+      - SUPABASE_ANON_KEY
+      - SENTRY_DSN
+      - BRIGHT_DATA_API_TOKEN
+      - BRIGHT_DATA_WEB_UNLOCKER_ZONE
+      - BRIGHT_DATA_BROWSER_ZONE
+      - BRIGHT_DATA_RATE_LIMIT
