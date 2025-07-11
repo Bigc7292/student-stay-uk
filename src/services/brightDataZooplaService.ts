@@ -286,7 +286,7 @@ class BrightDataZooplaService {
     if (!data) return [];
     
     // Handle different response formats
-    let properties = [];
+    let properties: any[] = [];
     if (Array.isArray(data)) {
       properties = data;
     } else if (data.results && Array.isArray(data.results)) {

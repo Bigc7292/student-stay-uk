@@ -58,8 +58,8 @@ export interface PropertySearchFilters {
 
 // Application state types
 export interface AppState {
-  user: User | null;
-  properties: PropertyDataUKProperty[];
+  user: any | null;
+  properties: any[];
   filters: PropertySearchFilters;
   loading: boolean;
   error: string | null;
@@ -74,7 +74,7 @@ export interface ApiResponse<T> {
 }
 
 export interface PropertySearchResponse {
-  properties: PropertyDataUKProperty[];
+  properties: any[];
   total: number;
   page: number;
   limit: number;

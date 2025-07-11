@@ -12,7 +12,14 @@ const DepositProtection = () => {
     moveIn: [],
     moveOut: []
   });
-  const [comparisonReport, setComparisonReport] = useState(null);
+  const [comparisonReport, setComparisonReport] = useState<{
+    overallCondition: string;
+    damageScore: number;
+    newDamages: { room: string; issue: string; severity: string; likelihood: number; }[];
+    recommendations: string[];
+    estimatedDeduction: number;
+    confidence: number;
+  } | null>(null);
 
   // Mock photo upload simulation
   const handlePhotoUpload = (type: 'moveIn' | 'moveOut') => {

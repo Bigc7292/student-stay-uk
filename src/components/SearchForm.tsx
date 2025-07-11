@@ -141,17 +141,17 @@ const SearchForm: React.FC<SearchFormProps> = ({ searchResults }) => {
               if (commute) {
                 const commuteMinutes = parseInt(commute.duration.replace(/\D/g, ''));
                 if (commuteMinutes <= maxCommute[0]) {
-                  filteredWithCommute.push({
-                    ...item,
-                    commuteInfo: commute
-                  });
+                (filteredWithCommute as any).push({
+                  ...item,
+                  commuteInfo: commute
+                });
                 }
               } else {
                 // Include without commute info if calculation fails
-                filteredWithCommute.push(item);
+                (filteredWithCommute as any).push(item);
               }
             } else {
-              filteredWithCommute.push(item);
+              (filteredWithCommute as any).push(item);
             }
           }
 

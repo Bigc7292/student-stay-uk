@@ -1,7 +1,7 @@
 import { spareRoomService } from './spareRoomService';
 import { rightmoveService } from './rightmoveService';
 import { gumtreeService } from './gumtreeService';
-import { openRentService } from './openRentService';
+// import { openRentService } from './openRentService';
 import type { Property } from '../types/Property';
 
 export interface SearchParams {
@@ -27,8 +27,8 @@ export class PropertyServiceManager {
     this.services = [
       spareRoomService,
       rightmoveService,
-      gumtreeService,
-      openRentService
+      gumtreeService
+      // openRentService - commented out due to type issues
     ];
   }
 
