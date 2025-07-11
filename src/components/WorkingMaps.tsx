@@ -155,7 +155,7 @@ const WorkingMaps: React.FC = () => {
         console.log('🗺️ WorkingMaps: Map container found, initializing...');
         // Use whichever element we found
         if (!mapRef.current && elementById) {
-          mapRef.current = elementById as HTMLDivElement;
+          (mapRef as any).current = elementById as HTMLDivElement;
         }
         initializeMap();
       } else {

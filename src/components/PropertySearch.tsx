@@ -412,10 +412,10 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
                             <p className="text-sm text-gray-600">{property.location} • {property.postcode}</p>
                           </div>
                           <Badge
-                            className={`${property.crimeData?.safetyScore >= 80 ? 'bg-green-500' :
-                                       property.crimeData?.safetyScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'} text-white`}
+                            className={`${(property.crimeData?.safetyScore || 0) >= 80 ? 'bg-green-500' :
+                                       (property.crimeData?.safetyScore || 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500'} text-white`}
                           >
-                            {property.crimeData?.safetyScore}% Safe
+                            {property.crimeData?.safetyScore || 'N/A'}% Safe
                           </Badge>
                         </div>
 
@@ -447,7 +447,7 @@ const PropertySearch = ({ onResults }: PropertySearchProps) => {
                       <p className="text-gray-600 text-sm">Nearby supermarkets, gyms, transport, and other facilities</p>
                     </div>
 
-                    {properties.filter(p => p.localAmenities?.length > 0).map((property) => (
+                    {properties.filter(p => p.localAmenities && p.localAmenities.length > 0).map((property) => (
                       <Card key={property.id} className="p-4">
                         <div className="mb-4">
                           <h4 className="font-medium">{property.title}</h4>

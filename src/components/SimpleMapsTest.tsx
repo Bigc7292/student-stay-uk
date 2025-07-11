@@ -14,7 +14,7 @@ const SimpleMapsTest: React.FC = () => {
   // Callback ref to ensure element is available
   const mapCallbackRef = useCallback((node: HTMLDivElement | null) => {
     if (node && !initAttempted) {
-      mapRef.current = node;
+      (mapRef as any).current = node;
       console.log('🗺️ SimpleMapsTest: Map container attached via callback ref');
       setInitAttempted(true);
       // Small delay to ensure the element is fully rendered

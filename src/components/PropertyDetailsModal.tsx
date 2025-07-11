@@ -53,13 +53,34 @@ interface LocalAmenity {
   walkTime: number;
 }
 
-interface EnhancedProperty extends PropertyDataUKProperty {
+interface EnhancedProperty {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  postcode?: string;
+  bedrooms: number;
+  bathrooms?: number;
+  propertyType?: string;
+  furnished?: boolean;
+  available?: boolean;
+  description?: string;
+  images?: string[];
   image?: string;
   deposit?: number;
   bills?: string;
   amenities?: string[];
   reviewData?: { keyInsights: KeyInsight[] };
   localAmenities?: LocalAmenity[];
+  landlordName?: string;
+  landlordVerified?: boolean;
+  safetyScore?: number;
+  priceType?: string;
+  crimeData?: {
+    safetyScore: number;
+    crimesPerThousand: number;
+    rating: string;
+  };
 }
 
 interface PropertyDetailsModalProps {
