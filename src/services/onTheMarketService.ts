@@ -111,7 +111,7 @@ class OnTheMarketService {
       
     } catch (error) {
       console.error('❌ OnTheMarket scraper error:', error);
-      throw new Error(`OnTheMarket scraper failed: ${error.message}`);
+      throw new Error(`OnTheMarket scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

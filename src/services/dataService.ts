@@ -80,7 +80,7 @@ class DataService {
         const searchFilters = {
           location,
           maxPrice,
-          propertyType: type === 'any' ? undefined : type,
+          propertyType: (type === 'any' ? undefined : type) as 'any' | 'studio' | 'shared' | 'flat' | 'house' | 'room' | 'apartment' | undefined,
           available: true,
           limit: 50
         };

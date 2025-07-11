@@ -23,22 +23,22 @@ export interface DatabaseProperty {
   id: string;
   title: string;
   price: number;
-  price_type: 'weekly' | 'monthly';
+  price_type: string | null;
   location: string;
-  full_address?: string;
-  postcode?: string;
-  bedrooms: number;
-  bathrooms: number;
-  property_type: string;
-  furnished: boolean;
-  available: boolean;
-  description?: string;
-  landlord_name?: string;
-  features?: string; // JSON string
+  full_address?: string | null;
+  postcode?: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  property_type: string | null;
+  furnished: boolean | null;
+  available: boolean | null;
+  description?: string | null;
+  landlord_name?: string | null;
+  features?: string | null; // JSON string
   source: string;
-  source_url?: string;
-  created_at: string;
-  updated_at: string;
+  source_url?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface DatabasePropertyImage {
@@ -53,8 +53,8 @@ export interface DatabaseUniversity {
   id: string;
   name: string;
   location: string;
-  postcode?: string;
-  rightmove_url?: string;
+  postcode?: string | null;
+  rightmove_url?: string | null;
 }
 
 class SupabasePropertyService {
@@ -391,7 +391,7 @@ class SupabasePropertyService {
   /**
    * Transform database property to frontend format
    */
-  private transformToFrontendProperty(dbProperty: DatabaseProperty & { property_images?: DatabasePropertyImage[] }): PropertyDataUKProperty {
+  private transformToFrontendProperty(dbProperty: any): PropertyDataUKProperty {
     // Parse features from JSON string
     let features: string[] = [];
     if (dbProperty.features) {
@@ -422,14 +422,14 @@ class SupabasePropertyService {
       id: dbProperty.id,
       title: dbProperty.title,
       price: dbProperty.price,
-      priceType: dbProperty.price_type,
+      priceType: dbProperty.price_type || 'weekly',
       location: dbProperty.location,
       postcode: dbProperty.postcode || '',
-      bedrooms: dbProperty.bedrooms,
-      bathrooms: dbProperty.bathrooms,
-      propertyType: dbProperty.property_type,
-      furnished: dbProperty.furnished,
-      available: dbProperty.available,
+      bedrooms: dbProperty.bedrooms || 0,
+      bathrooms: dbProperty.bathrooms || 0,
+      propertyType: dbProperty.property_type || '',
+      furnished: dbProperty.furnished || false,
+      available: dbProperty.available !== false,
       description: dbProperty.description || '',
       images: imageUrls,
       landlord: dbProperty.landlord_name ? { name: dbProperty.landlord_name, verified: true } : undefined

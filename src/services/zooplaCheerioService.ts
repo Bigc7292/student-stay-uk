@@ -169,7 +169,7 @@ class ZooplaCheerioService {
       
     } catch (error) {
       console.error('❌ Zoopla Cheerio scraper error:', error);
-      throw new Error(`Zoopla Cheerio scraper failed: ${error.message}`);
+      throw new Error(`Zoopla Cheerio scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

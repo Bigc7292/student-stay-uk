@@ -114,7 +114,7 @@ class RightmoveService {
       
     } catch (error) {
       console.error('❌ Rightmove scraper error:', error);
-      throw new Error(`Rightmove scraper failed: ${error.message}`);
+      throw new Error(`Rightmove scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -123,14 +123,14 @@ class RightmoveService {
     return {
       id: rightmoveProp.id,
       title: rightmoveProp.title,
+      address: rightmoveProp.location,
       price: rightmoveProp.price,
-      location: rightmoveProp.location,
-      features: rightmoveProp.features,
-      amenities: this.extractAmenities(rightmoveProp.description),
+      bedrooms: rightmoveProp.bedrooms,
+      bathrooms: rightmoveProp.bathrooms,
+      description: rightmoveProp.description,
       images: rightmoveProp.images,
-      available: rightmoveProp.available,
-      qualityScore: this.calculateQualityScore(rightmoveProp),
-      studentSuitability: this.calculateStudentSuitability(rightmoveProp)
+      url: rightmoveProp.url,
+      source: 'rightmove'
     };
   }
 

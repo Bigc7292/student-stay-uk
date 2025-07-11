@@ -410,7 +410,7 @@ class PropertyDataUKService {
           properties.push({
             id: `hmo-${postcode}-${roomType}`,
             title: `${this.formatRoomType(roomType)} - Student Accommodation`,
-            price: avgPrice,
+            price: avgPrice || 300,
             priceType: 'weekly',
             location: filters.location,
             postcode: postcode,

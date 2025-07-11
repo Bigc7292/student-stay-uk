@@ -119,7 +119,7 @@ class LocationService {
   async getTransitInfo(coordinates: { lat: number; lng: number }): Promise<TransitInfo> {
     const cacheKey = `transit_${coordinates.lat}_${coordinates.lng}`;
     
-    return this.getCachedData(cacheKey, async () => {
+    const result = await this.getCachedData(cacheKey, async () => {
       try {
         // Try Transport for London API (free)
         if (this.isInLondon(coordinates)) {
@@ -141,6 +141,8 @@ class LocationService {
       // Fallback to mock data
       return this.generateMockTransitData(coordinates);
     });
+    
+    return result || this.generateMockTransitData(coordinates);
   }
 
   // Get safety data using free crime APIs

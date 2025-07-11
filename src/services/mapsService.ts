@@ -277,14 +277,16 @@ Free tier includes 28,000 map loads per month!`;
       };
       service.nearbySearch(request, (results: google.maps.places.PlaceResult[] | null, status: google.maps.places.PlacesServiceStatus) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-          const places = results.slice(0, 5).map(place => ({
-            name: place.name,
-            coordinates: {
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            },
-            placeId: place.place_id
-          }));
+          const places = results.slice(0, 5)
+            .filter(place => place.geometry && place.geometry.location && place.name && place.place_id)
+            .map(place => ({
+              name: place.name!,
+              coordinates: {
+                lat: place.geometry!.location!.lat(),
+                lng: place.geometry!.location!.lng()
+              },
+              placeId: place.place_id!
+            }));
           resolve(places);
         } else {
           console.warn(`Places search failed for ${type}:`, status);

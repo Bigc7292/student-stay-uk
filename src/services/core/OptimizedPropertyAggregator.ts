@@ -314,7 +314,9 @@ class OptimizedPropertyAggregator implements PropertyAggregatorInterface {
     // Clean old cache entries
     if (this.cache.size > 100) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
     }
   }
 

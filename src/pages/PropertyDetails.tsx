@@ -10,31 +10,31 @@ interface Property {
   id: string;
   title: string;
   price: number;
-  price_type: string;
+  price_type: string | null;
   location: string;
-  full_address: string;
-  postcode: string;
-  bedrooms: number;
-  bathrooms: number;
-  property_type: string;
-  furnished: boolean;
-  available: boolean;
-  description: string;
-  landlord_name: string;
-  landlord_contact: string;
-  landlord_verified: boolean;
-  crime_rating: string;
-  crimes_per_thousand: number;
-  safety_score: number;
-  available_date: string;
-  transport_links: string;
-  nearby_amenities: string;
-  university_distance_miles: number;
+  full_address: string | null;
+  postcode: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  property_type: string | null;
+  furnished: boolean | null;
+  available: boolean | null;
+  description: string | null;
+  landlord_name: string | null;
+  landlord_contact: string | null;
+  landlord_verified: boolean | null;
+  crime_rating: string | null;
+  crimes_per_thousand: number | null;
+  safety_score: number | null;
+  available_date: string | null;
+  transport_links: string | null;
+  nearby_amenities: string | null;
+  university_distance_miles: number | null;
   property_images: Array<{
     id: string;
     image_url: string;
-    alt_text: string;
-    is_primary: boolean;
+    alt_text: string | null;
+    is_primary: boolean | null;
   }>;
 }
 
@@ -142,7 +142,7 @@ const PropertyDetails = () => {
             <div className="text-right">
               <div className="text-3xl font-bold text-blue-600">
                 £{property.price.toLocaleString()}
-                <span className="text-lg text-gray-500">/{property.price_type}</span>
+                <span className="text-lg text-gray-500">/{property.price_type || 'week'}</span>
               </div>
               <Badge variant={property.available ? "default" : "secondary"}>
                 {property.available ? "Available" : "Not Available"}
@@ -201,15 +201,15 @@ const PropertyDetails = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-2">
                     <Bed className="w-5 h-5 text-gray-500" />
-                    <span>{property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}</span>
+                    <span>{property.bedrooms || 0} Bedroom{(property.bedrooms || 0) !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Bath className="w-5 h-5 text-gray-500" />
-                    <span>{property.bathrooms} Bathroom{property.bathrooms !== 1 ? 's' : ''}</span>
+                    <span>{property.bathrooms || 0} Bathroom{(property.bathrooms || 0) !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Home className="w-5 h-5 text-gray-500" />
-                    <span className="capitalize">{property.property_type}</span>
+                    <span className="capitalize">{property.property_type || 'Property'}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-5 h-5 text-gray-500" />
@@ -219,17 +219,17 @@ const PropertyDetails = () => {
                 
                 <div>
                   <h3 className="font-semibold mb-2">Description</h3>
-                  <p className="text-gray-600">{property.description}</p>
+                  <p className="text-gray-600">{property.description || 'No description available'}</p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold mb-2">Transport Links</h3>
-                  <p className="text-gray-600">{property.transport_links}</p>
+                  <p className="text-gray-600">{property.transport_links || 'No transport information available'}</p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold mb-2">Nearby Amenities</h3>
-                  <p className="text-gray-600">{property.nearby_amenities}</p>
+                  <p className="text-gray-600">{property.nearby_amenities || 'No amenities information available'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -252,11 +252,13 @@ const PropertyDetails = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="font-medium">{property.landlord_name}</p>
-                  <div className="flex items-center mt-2 text-sm text-gray-600">
-                    <Mail className="w-4 h-4 mr-2" />
-                    <span>{property.landlord_contact}</span>
-                  </div>
+                  <p className="font-medium">{property.landlord_name || 'Contact details not available'}</p>
+                  {property.landlord_contact && (
+                    <div className="flex items-center mt-2 text-sm text-gray-600">
+                      <Mail className="w-4 h-4 mr-2" />
+                      <span>{property.landlord_contact}</span>
+                    </div>
+                  )}
                 </div>
                 <Button className="w-full">
                   <Phone className="w-4 h-4 mr-2" />
@@ -278,18 +280,18 @@ const PropertyDetails = () => {
                     property.crime_rating === 'Low' ? 'secondary' :
                     property.crime_rating === 'Medium' ? 'outline' : 'destructive'
                   }>
-                    {property.crime_rating}
+                    {property.crime_rating || 'N/A'}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Crimes per 1000</span>
-                  <span className="font-medium">{property.crimes_per_thousand}</span>
+                  <span className="font-medium">{property.crimes_per_thousand || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Safety Score</span>
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                    <span className="font-medium">{property.safety_score}/5</span>
+                    <span className="font-medium">{property.safety_score || 'N/A'}/5</span>
                   </div>
                 </div>
               </CardContent>
@@ -303,10 +305,10 @@ const PropertyDetails = () => {
               <CardContent>
                 <div className="flex justify-between items-center">
                   <span>Distance to University</span>
-                  <span className="font-medium">{property.university_distance_miles} miles</span>
+                  <span className="font-medium">{property.university_distance_miles || 'N/A'} miles</span>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                  Available from: {new Date(property.available_date).toLocaleDateString()}
+                  Available from: {property.available_date ? new Date(property.available_date).toLocaleDateString() : 'Contact landlord'}
                 </p>
               </CardContent>
             </Card>

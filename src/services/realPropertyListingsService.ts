@@ -1,6 +1,6 @@
 // Real Property Listings Service
 // Integrates with actual property listing APIs to get real property photos and details
-import { PropertySearchFilters } from '@/types/property';
+import { PropertySearchFilters } from '@/services/supabasePropertyService';
 
 export interface RealPropertyListing {
   id: string;

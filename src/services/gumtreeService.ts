@@ -112,7 +112,7 @@ class GumtreeService {
       
     } catch (error) {
       console.error('❌ Gumtree scraper error:', error);
-      throw new Error(`Gumtree scraper failed: ${error.message}`);
+      throw new Error(`Gumtree scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -121,14 +121,14 @@ class GumtreeService {
     return {
       id: gumtreeProp.id,
       title: gumtreeProp.title,
+      address: gumtreeProp.location,
       price: gumtreeProp.price,
-      location: gumtreeProp.location,
-      features: gumtreeProp.features,
-      amenities: this.extractAmenities(gumtreeProp.description),
+      bedrooms: gumtreeProp.bedrooms,
+      bathrooms: gumtreeProp.bathrooms,
+      description: gumtreeProp.description,
       images: gumtreeProp.images,
-      available: gumtreeProp.available,
-      qualityScore: this.calculateQualityScore(gumtreeProp),
-      studentSuitability: this.calculateStudentSuitability(gumtreeProp)
+      url: gumtreeProp.url,
+      source: 'gumtree'
     };
   }
 
