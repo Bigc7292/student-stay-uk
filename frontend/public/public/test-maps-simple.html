@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Google Maps API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Simple Google Maps API Test</h1>
+    
+    <div>
+        <h2>API Key Test</h2>
+        <p><strong>Testing API Key:</strong> AIzaSyB8SD-e7NsRs3r3pLwiU6jBO5qLmwVfhO0</p>
+        <button onclick="testAPIKey()">Test API Key</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div>
+        <h2>Map Test</h2>
+        <button onclick="loadMap()">Load Map</button>
+        <div id="map"></div>
+        <div id="map-results"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyB8SD-e7NsRs3r3pLwiU6jBO5qLmwVfhO0';
+        let map;
+
+        function addResult(elementId, message, type) {
+            const container = document.getElementById(elementId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        async function testAPIKey() {
+            const container = document.getElementById('api-results');
+            container.innerHTML = '';
+            
+            addResult('api-results', '🧪 Testing API key with Geocoding API...', 'info');
+            
+            try {
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/geocode/json?address=Manchester+University&key=${API_KEY}`
+                );
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    const location = data.results[0].geometry.location;
+                    addResult('api-results', `✅ API Key Working! Location: ${location.lat}, ${location.lng}`, 'success');
+                } else {
+                    addResult('api-results', `❌ API Error: ${data.status} - ${data.error_message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                addResult('api-results', `❌ Request Failed: ${error.message}`, 'error');
+            }
+        }
+
+        function loadMap() {
+            const container = document.getElementById('map-results');
+            container.innerHTML = '';
+            
+            addResult('map-results', '🧪 Loading Google Maps JavaScript API...', 'info');
+            
+            // Load Google Maps API
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&loading=async&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            
+            script.onerror = () => {
+                addResult('map-results', '❌ Failed to load Google Maps API script', 'error');
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        // Global callback function for Google Maps API
+        window.initMap = function() {
+            addResult('map-results', '✅ Google Maps API loaded successfully!', 'success');
+            
+            try {
+                // Initialize map
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 53.4668, lng: -2.2339 }, // Manchester University
+                    zoom: 15,
+                    mapTypeId: 'roadmap'
+                });
+
+                // Add a marker
+                new google.maps.Marker({
+                    position: { lat: 53.4668, lng: -2.2339 },
+                    map: map,
+                    title: 'University of Manchester'
+                });
+
+                addResult('map-results', '✅ Map initialized with marker!', 'success');
+            } catch (error) {
+                addResult('map-results', `❌ Map initialization failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Auto-test API key on page load
+        window.addEventListener('load', () => {
+            testAPIKey();
+        });
+    </script>
+</body>
+</html>

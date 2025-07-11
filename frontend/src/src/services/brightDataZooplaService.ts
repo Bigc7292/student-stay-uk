@@ -40,9 +40,9 @@ export interface ZooplaRequest {
 }
 
 class BrightDataZooplaService {
-  private readonly apiKey = process.env.BRIGHT_DATA_API_KEY || '';
+  private readonly apiKey = 'daf20140ecc930ba83243d2b1ec89e5e3f97d508176d7e318e6c17822f932fb2';
   private readonly baseUrl = 'https://api.brightdata.com/datasets/v3';
-  private readonly datasetId = process.env.BRIGHT_DATA_DATASET_ID || '';
+  private readonly datasetId = 'gd_lnabksndfp1pegwzh';
   private readonly timeout = 120000; // 2 minutes for data collection
 
   // Trigger property data collection from Zoopla

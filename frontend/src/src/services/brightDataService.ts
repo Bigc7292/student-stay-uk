@@ -22,37 +22,12 @@ interface ScrapingRequest {
 
 interface ScrapingResult {
   success: boolean;
-  data: unknown;
+  data: any;
   url: string;
   timestamp: string;
   format: string;
   screenshot?: string;
-  extractedData?: Record<string, unknown>;
-}
-
-// Move interfaces outside the class
-interface BrowserInteraction {
-  action: string;
-  selector?: string;
-  direction?: string;
-  distance?: number;
-  [key: string]: unknown;
-}
-
-interface BrowserRequest {
-  url: string;
-  zone?: string;
-  interactions?: BrowserInteraction[];
-  extractData?: {
-    selector: string;
-    attribute?: string;
-    multiple?: boolean;
-  }[];
-}
-
-// Helper type for property checks
-function hasResultsOrProperties(obj: unknown): obj is { results?: unknown[]; properties?: unknown[] } {
-  return typeof obj === 'object' && obj !== null;
+  extractedData?: Record<string, any>;
 }
 
 class BrightDataService {
@@ -152,7 +127,7 @@ class BrightDataService {
   }
 
   // Use browser automation for complex interactions
-  async scrapeDynamicPropertySite(url: string, interactions: BrowserInteraction[] = []): Promise<ScrapingResult> {
+  async scrapeDynamicPropertySite(url: string, interactions: any[] = []): Promise<ScrapingResult> {
     if (!this.isAvailable()) {
       throw new Error('Bright Data service not available');
     }
@@ -161,7 +136,7 @@ class BrightDataService {
       console.log(`🤖 Using browser automation for: ${url}`);
 
       // This would integrate with Bright Data's Browser API
-      const browserRequest: BrowserRequest = {
+      const browserRequest = {
         url,
         zone: this.config.browserZone,
         interactions: [
@@ -211,6 +186,9 @@ class BrightDataService {
 
   // Perform Web Unlocker request
   private async performWebUnlockerRequest(request: ScrapingRequest): Promise<ScrapingResult> {
+    // This is a simplified implementation
+    // In production, you'd use the actual Bright Data Web Unlocker API
+    
     const response = await fetch(`${this.baseUrl}/web-unlocker`, {
       method: 'POST',
       headers: {
@@ -221,28 +199,32 @@ class BrightDataService {
         url: request.url,
         zone: this.config.webUnlockerZone,
         format: request.format,
-        waitFor: request.waitFor,
-        screenshot: request.screenshot,
-        extractData: request.extractData
+        wait_for: request.waitFor,
+        extract_data: request.extractData
       })
     });
+
     if (!response.ok) {
       throw new Error(`Web Unlocker API error: ${response.status} ${response.statusText}`);
     }
+
     const data = await response.json();
+    
     return {
       success: true,
       data: data.content,
       url: request.url,
       timestamp: new Date().toISOString(),
       format: request.format || 'json',
-      screenshot: data.screenshot,
       extractedData: data.extracted_data
     };
   }
 
   // Perform Browser API request
-  private async performBrowserRequest(request: BrowserRequest): Promise<ScrapingResult> {
+  private async performBrowserRequest(request: any): Promise<ScrapingResult> {
+    // This is a simplified implementation
+    // In production, you'd use the actual Bright Data Browser API
+    
     const response = await fetch(`${this.baseUrl}/browser`, {
       method: 'POST',
       headers: {
@@ -251,10 +233,13 @@ class BrightDataService {
       },
       body: JSON.stringify(request)
     });
+
     if (!response.ok) {
       throw new Error(`Browser API error: ${response.status} ${response.statusText}`);
     }
+
     const data = await response.json();
+    
     return {
       success: true,
       data: data.content,
@@ -274,20 +259,17 @@ class BrightDataService {
   }
 
   // Check if there are more pages
-  private hasNextPage(data: unknown): boolean {
-    if (Array.isArray(data)) {
-      return data.length > 0;
-    }
-    if (hasResultsOrProperties(data)) {
-      const d = data as { results?: unknown[]; properties?: unknown[] };
-      return (Array.isArray(d.results) && d.results.length > 0) ||
-             (Array.isArray(d.properties) && d.properties.length > 0);
-    }
-    return false;
+  private hasNextPage(data: any): boolean {
+    // Simple heuristic - check if we got results
+    return data && (
+      (Array.isArray(data) && data.length > 0) ||
+      (data.results && data.results.length > 0) ||
+      (data.properties && data.properties.length > 0)
+    );
   }
 
   // Get service status
-  getStatus(): { available: boolean; enabled: boolean; configured: boolean; zones: Record<string, string | undefined> } {
+  getStatus(): { available: boolean; enabled: boolean; configured: boolean; zones: any } {
     return {
       available: this.isAvailable(),
       enabled: this.enabled,
