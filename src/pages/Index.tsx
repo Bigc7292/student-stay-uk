@@ -12,6 +12,7 @@ import {
   FileText,
   Home,
   Key,
+  LogOut,
   MapPin,
   Menu,
   MessageCircle,
@@ -23,9 +24,11 @@ import {
   Shield,
   TestTube,
   TrendingUp,
+  User,
   X
 } from 'lucide-react';
 import { Suspense, lazy, useState } from 'react';
+import { useAuth } from '@/components/AuthProvider';
 
 // Lazy load components for better performance
 const PropertyCarousel = lazy(() => import('@/components/PropertyCarousel'));
@@ -62,11 +65,26 @@ const LoadingSpinner = () => (
 );
 
 const Index = () => {
+  const { user, profile, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showAvatar, setShowAvatar] = useState(true); // State for AvatarAssistant visibility
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowUserMenu(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Navigation items
   const primaryNavItems = [
@@ -183,20 +201,19 @@ const Index = () => {
 
                 {/* Quick Action Buttons */}
                 <div className="flex flex-wrap justify-center gap-4 mb-8">
-                  <Button
-                    onClick={() => setActiveTab('search')}
-                    size="lg"
-                    className="bg-white text-gray-800 border border-gray-200 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 focus:text-blue-800 transition-colors"
-                  >
+                <Button
+                  onClick={() => setActiveTab('search')}
+                  size="lg"
+                  variant="outline"
+                >
                     <Search className="w-4 h-4 mr-2" />
                     Start Searching
                   </Button>
-                  <Button
-                    onClick={() => setShowAIAssistant(true)}
-                    size="lg"
-                    variant="outline"
-                    className="bg-white text-gray-800 border border-gray-200 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 focus:text-blue-800 transition-colors"
-                  >
+                <Button
+                  onClick={() => setShowAIAssistant(true)}
+                  size="lg"
+                  variant="outline"
+                >
                     <Bot className="w-4 h-4 mr-2" />
                     Ask AI Assistant
                   </Button>
@@ -273,10 +290,11 @@ const Index = () => {
                         setActiveTab(item.id);
                         console.log(`🎯 Current active tab: ${item.id}`);
                       }}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      variant="ghost"
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
                         activeTab === item.id
                           ? 'bg-gray-100 text-blue-700'
-                          : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 focus:text-blue-800'
+                          : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
                       }`}
                       aria-current={activeTab === item.id ? 'page' : undefined}
                     >
@@ -292,7 +310,8 @@ const Index = () => {
                 <Button
                   type="button"
                   onClick={() => setShowToolsDropdown(!showToolsDropdown)}
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  variant="ghost"
+                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium"
                   aria-expanded={!!showToolsDropdown}
                   aria-haspopup="menu"
                   aria-label="Open tools menu"
@@ -318,7 +337,8 @@ const Index = () => {
                               setShowToolsDropdown(false);
                               console.log(`🎯 Current active tab: ${item.id}`);
                             }}
-                            className={`flex items-center w-full px-3 py-2 text-sm bg-white text-gray-700 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 focus:text-blue-800 transition-colors`}
+                            variant="ghost"
+                            className="flex items-center w-full px-3 py-2 text-sm justify-start"
                           >
                             <Icon className="w-4 h-4 mr-3" />
                             {item.label}
@@ -340,7 +360,8 @@ const Index = () => {
                                 setShowToolsDropdown(false);
                                 console.log(`🎯 Current active tab: ${item.id}`);
                               }}
-                              className={`flex items-center w-full px-3 py-2 text-sm bg-white text-gray-700 hover:text-blue-600 hover:bg-gray-100 active:text-blue-800 focus:text-blue-800 transition-colors`}
+                              variant="ghost"
+                              className="flex items-center w-full px-3 py-2 text-sm justify-start"
                             >
                               <Icon className="w-4 h-4 mr-3" />
                               {item.label}
@@ -360,23 +381,68 @@ const Index = () => {
                 🔴 Live Data
               </Badge>
 
-              {/* AI Assistant Button */}
-              <Button
-                onClick={() => setShowAIAssistant(true)}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center space-x-2"
-              >
-                <Bot className="w-4 h-4" />
-                <span>AI Assistant</span>
-              </Button>
+              {/* User Menu / AI Assistant */}
+              {user ? (
+                <div className="flex items-center space-x-4">
+                  <Button
+                    onClick={() => setShowAIAssistant(true)}
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex items-center space-x-2"
+                  >
+                    <Bot className="w-4 h-4" />
+                    <span>AI Assistant</span>
+                  </Button>
+                  
+                  <div className="relative">
+                    <Button
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-2"
+                    >
+                      <User className="w-4 h-4" />
+                      <span className="hidden sm:inline">{profile?.full_name || user.email}</span>
+                    </Button>
+                    
+                    {showUserMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                        <div className="py-1">
+                          <div className="px-3 py-2 text-sm text-gray-500">
+                            {profile?.full_name || user.email}
+                          </div>
+                          <Button
+                            onClick={handleSignOut}
+                            variant="ghost"
+                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Sign Out
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowAIAssistant(true)}
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex items-center space-x-2"
+                >
+                  <Bot className="w-4 h-4" />
+                  <span>AI Assistant</span>
+                </Button>
+              )}
 
               {/* Mobile Menu Button */}
               <div className="lg:hidden">
                 <Button
                   type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                  variant="ghost"
+                  size="sm"
                   aria-expanded={!!showMobileMenu}
                   aria-label={showMobileMenu ? 'Close mobile menu' : 'Open mobile menu'}
                 >
@@ -400,7 +466,8 @@ const Index = () => {
                         setShowMobileMenu(false);
                         console.log(`🎯 Current active tab: ${item.id}`);
                       }}
-                      className={`flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm font-medium ${
+                      variant="ghost"
+                      className={`flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm font-medium justify-start ${
                         activeTab === item.id
                           ? 'bg-gray-100 text-blue-700'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -427,7 +494,8 @@ const Index = () => {
                           setShowMobileMenu(false);
                           console.log(`🎯 Current active tab: ${item.id}`);
                         }}
-                        className="flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        variant="ghost"
+                        className="flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 justify-start"
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.label}</span>
