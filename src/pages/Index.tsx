@@ -65,7 +65,7 @@ const LoadingSpinner = () => (
 );
 
 const Index = () => {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, error, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
@@ -78,10 +78,14 @@ const Index = () => {
     setShowUserMenu(false);
   };
 
-  if (loading) {
+  // Don't show loading for too long - the page should be accessible
+  if (loading && !error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading StudentHome...</p>
+        </div>
       </div>
     );
   }
@@ -223,7 +227,14 @@ const Index = () => {
 
             {/* Live Properties Carousel */}
             <section className="py-8 px-4">
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-gray-500 text-sm">Loading properties...</p>
+                  </div>
+                </div>
+              }>
                 <PropertyCarousel maxProperties={8} />
               </Suspense>
             </section>
@@ -241,7 +252,14 @@ const Index = () => {
                 Use our advanced AI-powered search to find the perfect accommodation with real-time data and personalized recommendations.
               </p>
             </div>
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-gray-500 text-sm">Loading search...</p>
+                </div>
+              </div>
+            }>
               <PropertySearch />
             </Suspense>
           </div>

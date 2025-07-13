@@ -15,6 +15,7 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
+  error: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -36,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch user profile from our profiles table
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
@@ -66,43 +68,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isMounted) return;
+        
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Fetch profile data with a slight delay to ensure trigger has executed
+            setTimeout(async () => {
+              if (!isMounted) return;
+              const profileData = await fetchProfile(session.user.id);
+              setProfile(profileData);
+              setError(null);
+            }, 100);
+          } else {
+            setProfile(null);
+          }
+        } catch (err) {
+          console.error('Auth state change error:', err);
+          setError('Authentication error occurred');
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      }
+    );
+
+    // Check for existing session with timeout
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.error('Session error:', error);
+          setError('Failed to get session');
+          setLoading(false);
+          return;
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile data with a slight delay to ensure trigger has executed
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          }, 100);
-        } else {
-          setProfile(null);
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
         }
         
+        setError(null);
+      } catch (err) {
+        console.error('Init auth error:', err);
+        setError('Failed to initialize authentication');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set a maximum loading time to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth initialization timeout');
         setLoading(false);
+        setError('Authentication initialization timeout');
       }
-    );
+    }, 10000); // 10 second timeout
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
-      }
-      
-      setLoading(false);
-    });
+    initAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+      clearTimeout(loadingTimeout);
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setError(null);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -115,6 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
+      setError(null);
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
@@ -135,6 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      setError(null);
       const { error } = await supabase.auth.signOut();
       if (!error) {
         setUser(null);
@@ -151,6 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return { error: new Error('No user logged in') };
 
     try {
+      setError(null);
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -171,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile,
     loading,
+    error,
     signIn,
     signUp,
     signOut,
